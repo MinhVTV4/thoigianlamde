@@ -46,6 +46,14 @@
         .management-list .delete-btn:hover { color: #dc2626; text-decoration: underline; }
         .management-list .item-text { flex: 1; margin-right: 8px; word-break: break-word; }
         .color-square { display: inline-block; width: 0.75rem; height: 0.75rem; margin-right: 0.5rem; border-radius: 0.125rem; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1); }
+
+        /* Wake Lock Toggle Styles */
+        .wake-lock-toggle { appearance: none; width: 36px; height: 20px; background-color: #ccc; border-radius: 10px; position: relative; cursor: pointer; transition: background-color 0.2s ease-in-out; vertical-align: middle; }
+        .wake-lock-toggle::before { content: ''; position: absolute; width: 16px; height: 16px; background-color: white; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.2s ease-in-out; }
+        .wake-lock-toggle:checked { background-color: #2563eb; /* blue-600 */ }
+        .wake-lock-toggle:checked::before { transform: translateX(16px); }
+        #wakeLockStatus { font-style: italic; }
+
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
@@ -54,21 +62,23 @@
 
         <div id="mainContent">
             <div id="settings" class="space-y-4">
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                         <label for="subjectSelect" class="block text-sm font-medium text-gray-700">Môn thi:</label>
-                         <button id="manageSubjectsButton" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium py-1">Quản lý</button>
-                    </div>
-                    <select id="subjectSelect" class="w-full"> </select>
-                </div>
-                <div> <label for="examNumberInput" class="block text-sm font-medium text-gray-700 mb-1">Đề số / Tên bài thi:</label> <input type="text" id="examNumberInput" placeholder="Ví dụ: Đề 1, Giữa kỳ" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"> </div>
-                <div class="flex flex-col sm:flex-row gap-4"> <div class="flex-1"> <label for="totalTimeInput" class="block text-sm font-medium text-gray-700 mb-1">Tổng thời gian làm bài (phút):</label> <input type="number" id="totalTimeInput" value="60" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"> </div> <div class="flex-1"> <label for="totalQuestionsInput" class="block text-sm font-medium text-gray-700 mb-1">Tổng số câu hỏi:</label> <input type="number" id="totalQuestionsInput" value="50" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"> </div> </div>
+                <div> <div class="flex justify-between items-center mb-1"> <label for="subjectSelect" class="block text-sm font-medium text-gray-700">Môn thi:</label> <button id="manageSubjectsButton" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium py-1">Quản lý</button> </div> <select id="subjectSelect" class="w-full"> </select> </div>
+                <div> <label for="examNumberInput" class="block text-sm font-medium text-gray-700 mb-1">Đề số / Tên bài thi:</label> <input type="text" id="examNumberInput" placeholder="Ví dụ: Đề 1, Giữa kỳ" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"> </div> <div class="flex flex-col sm:flex-row gap-4"> <div class="flex-1"> <label for="totalTimeInput" class="block text-sm font-medium text-gray-700 mb-1">Tổng thời gian làm bài (phút):</label> <input type="number" id="totalTimeInput" value="60" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"> </div> <div class="flex-1"> <label for="totalQuestionsInput" class="block text-sm font-medium text-gray-700 mb-1">Tổng số câu hỏi:</label> <input type="number" id="totalQuestionsInput" value="50" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"> </div> </div>
                 <button id="startButton" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4"> Bắt đầu làm bài </button>
                 <div class="flex flex-col sm:flex-row gap-3 mt-3"> <button id="viewHistoryButton" class="w-full sm:w-auto flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4"> Xem Lịch sử Thi </button> <button id="manageLabelsButton" class="w-full sm:w-auto flex-1 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4"> Quản lý Nhãn </button> </div>
             </div>
 
             <div id="examArea" class="hidden space-y-4">
-                 <div class="text-center mb-4 p-3 bg-blue-50 rounded-md border border-blue-200"> <p class="text-sm font-medium text-blue-800">Môn: <span id="currentSubjectDisplay" class="font-semibold"></span> - Đề: <span id="currentExamNumberDisplay" class="font-semibold"></span></p> </div> <div class="text-center"> <p class="text-lg font-medium text-gray-700">Thời gian còn lại:</p> <div id="timerDisplay" class="text-4xl md:text-5xl font-bold text-red-500 my-2">00:00:00</div> <p id="currentQuestionTimerDisplay" class="text-lg text-gray-600 mt-1">Thời gian câu này: <span id="currentQuestionTime">00:00</span></p> <p class="text-sm text-gray-500 mt-2">Đang làm câu: <span id="currentQuestionNumber" class="font-semibold">1</span> / <span id="totalQuestionsDisplay">?</span></p> <div id="progressBarContainer"> <div id="progressBar" style="width: 0%"></div> </div> </div> <div class="mt-4"> <label for="examLabelSelect" class="block text-sm font-medium text-gray-700 mb-1 text-center">Gán nhãn cho câu <span id="currentQuestionNumberLabel">1</span> (tùy chọn):</label> <select id="examLabelSelect" > </select> </div> <div class="flex flex-col sm:flex-row gap-3"> <button id="nextQuestionButton" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4"> Hoàn thành câu / Bài tiếp theo </button> <button id="endExamButton" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4"> Kết thúc bài thi </button> </div> <button id="pauseResumeButton" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 mt-3"> Tạm dừng </button>
+                 <div class="text-center mb-4 p-3 bg-blue-50 rounded-md border border-blue-200"> <p class="text-sm font-medium text-blue-800">Môn: <span id="currentSubjectDisplay" class="font-semibold"></span> - Đề: <span id="currentExamNumberDisplay" class="font-semibold"></span></p> </div>
+                 <div class="text-center"> <p class="text-lg font-medium text-gray-700">Thời gian còn lại:</p> <div id="timerDisplay" class="text-4xl md:text-5xl font-bold text-red-500 my-2">00:00:00</div> <p id="currentQuestionTimerDisplay" class="text-lg text-gray-600 mt-1">Thời gian câu này: <span id="currentQuestionTime">00:00</span></p> <p class="text-sm text-gray-500 mt-2">Đang làm câu: <span id="currentQuestionNumber" class="font-semibold">1</span> / <span id="totalQuestionsDisplay">?</span></p> <div id="progressBarContainer"> <div id="progressBar" style="width: 0%"></div> </div> </div>
+                 <div class="mt-4"> <label for="examLabelSelect" class="block text-sm font-medium text-gray-700 mb-1 text-center">Gán nhãn cho câu <span id="currentQuestionNumberLabel">1</span> (tùy chọn):</label> <select id="examLabelSelect" > </select> </div>
+                 <div class="flex flex-col sm:flex-row gap-3"> <button id="nextQuestionButton" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4"> Hoàn thành câu / Bài tiếp theo </button> <button id="endExamButton" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4"> Kết thúc bài thi </button> </div>
+                 <button id="pauseResumeButton" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 mt-3"> Tạm dừng </button>
+                 <div id="wakeLockControl" class="mt-4 text-center text-sm hidden border-t pt-3 border-gray-200">
+                     <label for="keepScreenOnToggle" class="mr-2 text-gray-600 cursor-pointer">Giữ màn hình sáng:</label>
+                     <input type="checkbox" id="keepScreenOnToggle" class="wake-lock-toggle">
+                     <span id="wakeLockStatus" class="text-xs text-gray-500 ml-1"></span>
+                 </div>
             </div>
 
             <div id="resultsArea" class="hidden mt-6">
@@ -86,6 +96,7 @@
             <div id="subjectManagementArea" class="hidden mt-6 management-list">
                  <h2 class="text-xl font-semibold text-center text-teal-600 mb-4">Quản lý Môn thi</h2> <div class="mb-4"> <label for="newSubjectInput" class="block text-sm font-medium text-gray-700 mb-1">Thêm môn thi mới:</label> <div class="flex gap-2"> <input type="text" id="newSubjectInput" placeholder="Nhập tên môn thi..." class="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500"> <button id="addSubjectButton" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4"> Thêm </button> </div> </div> <h3 class="text-lg font-semibold text-gray-700 mb-2">Các môn thi đã tạo:</h3> <div class="bg-gray-50 p-3 rounded-md border border-gray-200 max-h-60 overflow-y-auto"> <ul id="subjectsList"> <li class="italic text-gray-500 text-center" id="noSubjectsMessage">Chưa có môn thi nào được tạo.</li> </ul> </div> <button id="backToSettingsFromSubjectsButton" class="mt-6 w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4"> Quay lại Cài đặt </button>
             </div>
+
 
             <div id="historyDetailModal" class="modal">
                 <div class="modal-content">
@@ -108,8 +119,8 @@
         const resultsAreaDiv = document.getElementById('resultsArea');
         const historyAreaDiv = document.getElementById('historyArea');
         const labelManagementArea = document.getElementById('labelManagementArea');
-        const subjectManagementArea = document.getElementById('subjectManagementArea'); // NEW
-        const subjectSelect = document.getElementById('subjectSelect'); // NEW (replaces subjectInput)
+        const subjectManagementArea = document.getElementById('subjectManagementArea');
+        const subjectSelect = document.getElementById('subjectSelect'); // Changed from input
         const examNumberInput = document.getElementById('examNumberInput');
         const totalTimeInput = document.getElementById('totalTimeInput');
         const totalQuestionsInput = document.getElementById('totalQuestionsInput');
@@ -117,7 +128,7 @@
         const viewHistoryButton = document.getElementById('viewHistoryButton');
         const viewHistoryFromResultsButton = document.getElementById('viewHistoryFromResultsButton');
         const manageLabelsButton = document.getElementById('manageLabelsButton');
-        const manageSubjectsButton = document.getElementById('manageSubjectsButton'); // NEW
+        const manageSubjectsButton = document.getElementById('manageSubjectsButton');
         const currentSubjectDisplay = document.getElementById('currentSubjectDisplay');
         const currentExamNumberDisplay = document.getElementById('currentExamNumberDisplay');
         const timerDisplay = document.getElementById('timerDisplay');
@@ -164,23 +175,29 @@
         const customLabelsList = document.getElementById('customLabelsList');
         const noCustomLabelsMessage = document.getElementById('noCustomLabelsMessage');
         const backToSettingsFromLabelsButton = document.getElementById('backToSettingsFromLabelsButton');
-        const newSubjectInput = document.getElementById('newSubjectInput'); // NEW
-        const addSubjectButton = document.getElementById('addSubjectButton'); // NEW
-        const subjectsList = document.getElementById('subjectsList'); // NEW
-        const noSubjectsMessage = document.getElementById('noSubjectsMessage'); // NEW
-        const backToSettingsFromSubjectsButton = document.getElementById('backToSettingsFromSubjectsButton'); // NEW
+        const newSubjectInput = document.getElementById('newSubjectInput');
+        const addSubjectButton = document.getElementById('addSubjectButton');
+        const subjectsList = document.getElementById('subjectsList');
+        const noSubjectsMessage = document.getElementById('noSubjectsMessage');
+        const backToSettingsFromSubjectsButton = document.getElementById('backToSettingsFromSubjectsButton');
         const errorMessageDiv = document.getElementById('errorMessage');
+        const wakeLockControl = document.getElementById('wakeLockControl'); // NEW
+        const keepScreenOnToggle = document.getElementById('keepScreenOnToggle'); // NEW
+        const wakeLockStatus = document.getElementById('wakeLockStatus'); // NEW
 
         // === State Variables ===
         let totalSecondsSet = 0, totalQuestionsSet = 0, secondsRemaining = 0, currentQuestionIndex = 1, pausedTime = 0, totalPauseDuration = 0, currentQuestionSeconds = 0;
         let timerInterval = null, questionStartTime = 0, examStartTime = 0, currentQuestionTimerInterval = null;
         let isPaused = false;
         let currentExamData = null;
+        let isExamRunning = false; // NEW: Track if exam is active
+        let screenWakeLockSentinel = null; // NEW: Wake Lock sentinel
+        const isWakeLockSupported = 'wakeLock' in navigator; // NEW: Check API support
 
         // === Constants ===
         const HISTORY_STORAGE_KEY = 'examTimerHistoryV4';
         const CUSTOM_LABELS_KEY = 'examTimerCustomLabelsV1';
-        const SUBJECTS_KEY = 'examTimerSubjectsV1'; // NEW
+        const SUBJECTS_KEY = 'examTimerSubjectsV1';
         const DEFAULT_LABELS = ['Chưa gán', 'Dễ', 'Trung bình', 'Khó', 'Lý thuyết', 'Bài tập', 'Khác'];
         const DEFAULT_LABEL_COLORS = { 'Chưa gán': { bg: 'bg-gray-100', text: 'text-gray-800' }, 'Dễ': { bg: 'bg-green-100', text: 'text-green-800' }, 'Trung bình': { bg: 'bg-blue-100', text: 'text-blue-800' }, 'Khó': { bg: 'bg-red-100', text: 'text-red-800' }, 'Lý thuyết': { bg: 'bg-yellow-100', text: 'text-yellow-800' }, 'Bài tập': { bg: 'bg-purple-100', text: 'text-purple-800' }, 'Khác': { bg: 'bg-indigo-100', text: 'text-indigo-800' } };
         const CUSTOM_LABEL_COLOR_CYCLE = [ { bg: 'bg-pink-100', text: 'text-pink-800' }, { bg: 'bg-cyan-100', text: 'text-cyan-800' }, { bg: 'bg-orange-100', text: 'text-orange-800' }, { bg: 'bg-lime-100', text: 'text-lime-800' }, { bg: 'bg-teal-100', text: 'text-teal-800' }, { bg: 'bg-fuchsia-100', text: 'text-fuchsia-800' }, { bg: 'bg-sky-100', text: 'text-sky-800' }, { bg: 'bg-rose-100', text: 'text-rose-800' } ];
@@ -194,9 +211,9 @@
         function formatDate(date) { if (!date || !(date instanceof Date) || isNaN(date.getTime())) return 'N/A'; try { return date.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { console.error("Lỗi định dạng ngày:", e); return 'N/A'; } }
         function showError(message) { errorMessageDiv.textContent = message; errorMessageDiv.classList.remove('hidden'); if (errorMessageDiv.timeoutId) { clearTimeout(errorMessageDiv.timeoutId); } errorMessageDiv.timeoutId = setTimeout(() => { errorMessageDiv.classList.add('hidden'); errorMessageDiv.timeoutId = null; }, 5000); }
         function hideAllSections() { settingsDiv.classList.add('hidden'); examAreaDiv.classList.add('hidden'); resultsAreaDiv.classList.add('hidden'); historyAreaDiv.classList.add('hidden'); labelManagementArea.classList.add('hidden'); subjectManagementArea.classList.add('hidden'); }
-        function showSettings() { clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval); timerInterval = null; currentQuestionTimerInterval = null; isPaused = false; pausedTime = 0; totalPauseDuration = 0; examStartTime = 0; questionStartTime = 0; currentQuestionIndex = 1; currentExamData = null; secondsRemaining = 0; currentQuestionSeconds = 0; hideAllSections(); settingsDiv.classList.remove('hidden'); populateSubjectSelect(subjectSelect); errorMessageDiv.classList.add('hidden'); progressBar.style.width = '0%'; if(currentQuestionTimeSpan) currentQuestionTimeSpan.textContent = '00:00'; }
+        function showSettings() { clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval); timerInterval = null; currentQuestionTimerInterval = null; isPaused = false; isExamRunning = false; pausedTime = 0; totalPauseDuration = 0; examStartTime = 0; questionStartTime = 0; currentQuestionIndex = 1; currentExamData = null; secondsRemaining = 0; currentQuestionSeconds = 0; releaseWakeLock(); /* Release lock when going to settings */ hideAllSections(); settingsDiv.classList.remove('hidden'); populateSubjectSelect(subjectSelect); errorMessageDiv.classList.add('hidden'); progressBar.style.width = '0%'; if(currentQuestionTimeSpan) currentQuestionTimeSpan.textContent = '00:00'; if (wakeLockControl) wakeLockControl.classList.add('hidden'); /* Hide wake lock control */ }
 
-        // === Subject Management Functions === (NEW)
+        // === Subject Management ===
         function getSubjects() { const subjectsJson = localStorage.getItem(SUBJECTS_KEY); try { const subjects = subjectsJson ? JSON.parse(subjectsJson) : []; if (Array.isArray(subjects) && subjects.every(s => typeof s === 'string')) { return subjects.sort((a, b) => a.localeCompare(b)); } return []; } catch (e) { console.error("Lỗi đọc môn thi từ localStorage:", e); return []; } }
         function saveSubjects(subjectsArray) { try { if (Array.isArray(subjectsArray) && subjectsArray.every(s => typeof s === 'string')) { localStorage.setItem(SUBJECTS_KEY, JSON.stringify(subjectsArray)); } else { console.error("Attempted to save invalid subjects array:", subjectsArray); showError("Lỗi: Không thể lưu danh sách môn thi không hợp lệ."); } } catch (e) { console.error("Lỗi lưu môn thi vào localStorage:", e); showError("Không thể lưu môn thi. Bộ nhớ trình duyệt có thể đã đầy."); } }
         function addSubject() { const newSubject = newSubjectInput.value.trim(); if (!newSubject) { showError("Tên môn thi không được để trống."); return; } const currentSubjects = getSubjects(); if (currentSubjects.map(s => s.toLowerCase()).includes(newSubject.toLowerCase())) { showError(`Môn thi "${newSubject}" đã tồn tại.`); return; } currentSubjects.push(newSubject); saveSubjects(currentSubjects); populateSubjectsList(); populateSubjectSelect(subjectSelect); newSubjectInput.value = ''; showError(`Đã thêm môn thi "${newSubject}".`); }
@@ -204,9 +221,9 @@
         function populateSubjectsList() { const subjects = getSubjects(); subjectsList.innerHTML = ''; if (subjects.length === 0) { noSubjectsMessage.style.display = 'block'; } else { noSubjectsMessage.style.display = 'none'; subjects.forEach(subject => { const li = document.createElement('li'); li.innerHTML = `<span class="item-text">${subject}</span><button class="delete-btn delete-subject-btn" data-subject="${subject}">Xóa</button>`; subjectsList.appendChild(li); }); } }
         function showSubjectManagement() { hideAllSections(); subjectManagementArea.classList.remove('hidden'); populateSubjectsList(); newSubjectInput.value = ''; }
         function handleSubjectManagementListClick(e) { if (e.target && e.target.classList.contains('delete-subject-btn')) { const subjectToDelete = e.target.dataset.subject; if (subjectToDelete && confirm(`Bạn có chắc chắn muốn xóa môn thi "${subjectToDelete}" không?`)) { deleteSubject(subjectToDelete); } } }
-        function populateSubjectSelect(selectElement) { const subjects = getSubjects(); const previouslySelected = selectElement.value; selectElement.innerHTML = '<option value="">-- Chọn môn thi --</option>'; subjects.forEach(subject => { const option = document.createElement('option'); option.value = subject; option.textContent = subject; if (subject === previouslySelected) { option.selected = true; } selectElement.appendChild(option); }); selectElement.disabled = subjects.length === 0; if (subjects.length === 0) { showError("Chưa có môn thi nào. Vui lòng vào 'Quản lý Môn thi' để thêm."); } }
+        function populateSubjectSelect(selectElement) { const subjects = getSubjects(); const previouslySelected = selectElement.value; selectElement.innerHTML = '<option value="">-- Chọn môn thi --</option>'; subjects.forEach(subject => { const option = document.createElement('option'); option.value = subject; option.textContent = subject; if (subject === previouslySelected) { option.selected = true; } selectElement.appendChild(option); }); selectElement.disabled = subjects.length === 0; if (subjects.length === 0 && settingsDiv && !settingsDiv.classList.contains('hidden')) { /* Only show error if in settings */ showError("Chưa có môn thi nào. Vui lòng vào 'Quản lý' để thêm."); } }
 
-        // === Custom Label Management ===
+        // === Label Management & Colors ===
         function getCustomLabels() { const labelsJson = localStorage.getItem(CUSTOM_LABELS_KEY); try { const labels = labelsJson ? JSON.parse(labelsJson) : []; if (Array.isArray(labels) && labels.every(l => typeof l === 'string')) { return labels; } return []; } catch (e) { console.error("Lỗi đọc nhãn tùy chỉnh từ localStorage:", e); return []; } }
         function saveCustomLabels(labelsArray) { try { if (Array.isArray(labelsArray) && labelsArray.every(l => typeof l === 'string')) { localStorage.setItem(CUSTOM_LABELS_KEY, JSON.stringify(labelsArray)); } else { console.error("Attempted to save invalid custom labels array:", labelsArray); showError("Lỗi: Không thể lưu danh sách nhãn không hợp lệ."); } } catch (e) { console.error("Lỗi lưu nhãn tùy chỉnh vào localStorage:", e); showError("Không thể lưu nhãn tùy chỉnh. Bộ nhớ trình duyệt có thể đã đầy."); } }
         function getAllLabels() { const customLabels = getCustomLabels(); const all = [...DEFAULT_LABELS, ...customLabels.filter(l => !DEFAULT_LABELS.includes(l))]; return all; }
@@ -218,14 +235,130 @@
         function populateLabelDropdown(selectElement, defaultSelectedValue = 'Chưa gán') { const allLabels = getAllLabels(); selectElement.innerHTML = ''; allLabels.forEach(label => { const option = document.createElement('option'); option.value = label; option.textContent = label; if (label === defaultSelectedValue) { option.selected = true; } selectElement.appendChild(option); }); const styleClasses = getLabelStyleClasses(defaultSelectedValue); if (selectElement.id === 'examLabelSelect') { selectElement.className = `w-full max-w-xs mx-auto block ${styleClasses.bg} ${styleClasses.text}`; selectElement.removeEventListener('change', handleExamLabelChange); selectElement.addEventListener('change', handleExamLabelChange); } }
         function handleExamLabelChange(e) { const selectElement = e.target; const newLabel = selectElement.value; const styleClasses = getLabelStyleClasses(newLabel); selectElement.className = `w-full max-w-xs mx-auto block ${styleClasses.bg} ${styleClasses.text}`; }
 
-        // === Core Exam Logic ===
+        // === Wake Lock Functions === (NEW Section)
+        async function requestWakeLock() {
+            if (!isWakeLockSupported || !keepScreenOnToggle.checked || screenWakeLockSentinel) {
+                updateWakeLockStatus(); // Update status even if not requesting
+                return;
+            }
+            try {
+                screenWakeLockSentinel = await navigator.wakeLock.request('screen');
+                screenWakeLockSentinel.addEventListener('release', () => {
+                    // console.log('Wake Lock tự động giải phóng.');
+                    // Checkbox state shouldn't change here, only the sentinel and status
+                    if (screenWakeLockSentinel === null) return; // Avoid race condition if released manually right after auto-release
+                    screenWakeLockSentinel = null;
+                    updateWakeLockStatus();
+                });
+                // console.log('Wake Lock đã được kích hoạt.');
+                updateWakeLockStatus();
+            } catch (err) {
+                console.error(`Không thể kích hoạt Wake Lock: ${err.name}, ${err.message}`);
+                screenWakeLockSentinel = null; // Ensure it's null on error
+                keepScreenOnToggle.checked = false; // Uncheck toggle if request failed
+                updateWakeLockStatus(true); // Indicate error
+            }
+        }
+        async function releaseWakeLock() {
+            if (!isWakeLockSupported || !screenWakeLockSentinel) {
+                 updateWakeLockStatus(); // Update status
+                return;
+            }
+            try {
+                await screenWakeLockSentinel.release();
+                // console.log('Wake Lock đã được giải phóng.');
+            } catch (err) {
+                console.error(`Không thể giải phóng Wake Lock: ${err.name}, ${err.message}`);
+            } finally {
+                 screenWakeLockSentinel = null; // Always set to null after attempting release
+                 updateWakeLockStatus();
+            }
+        }
+        function updateWakeLockStatus(isError = false) {
+             if (!isWakeLockSupported || !wakeLockStatus) return;
+            if (isError) {
+                 wakeLockStatus.textContent = '(Lỗi)';
+                 wakeLockStatus.classList.add('text-red-500');
+            } else if (screenWakeLockSentinel) {
+                wakeLockStatus.textContent = '(Đang bật)';
+                 wakeLockStatus.classList.remove('text-red-500');
+            } else {
+                 wakeLockStatus.textContent = '(Đang tắt)';
+                 wakeLockStatus.classList.remove('text-red-500');
+            }
+        }
+        async function handleVisibilityChange() {
+            if (!isWakeLockSupported || !isExamRunning || isPaused) return;
+            if (document.visibilityState === 'visible' && keepScreenOnToggle.checked) {
+                // console.log("Tab visible again, re-acquiring lock if needed.");
+                await requestWakeLock(); // Try to re-acquire lock
+            } else {
+                // Browser should release automatically, but we reset our state via the 'release' event listener
+                // await releaseWakeLock(); // Explicit release might cause issues if browser already did
+            }
+        }
+
+        // === Core Exam Logic (Modified for Wake Lock) ===
         function updateTimer() { if (isPaused || !examStartTime) return; const now = Date.now(); const elapsedSeconds = Math.floor((now - examStartTime - totalPauseDuration) / 1000); secondsRemaining = totalSecondsSet - elapsedSeconds; if (secondsRemaining < 0) { secondsRemaining = 0; } timerDisplay.textContent = formatTime(secondsRemaining); if (totalSecondsSet > 0) { const percentage = Math.max(0, Math.min(100, (elapsedSeconds / totalSecondsSet) * 100)); progressBar.style.width = `${percentage}%`; } else { progressBar.style.width = '0%'; } if (secondsRemaining <= 0) { timerDisplay.textContent = formatTime(0); progressBar.style.width = '100%'; showError("Hết giờ làm bài!"); endExam(); timerDisplay.classList.remove('text-red-500', 'text-orange-500'); timerDisplay.classList.add('text-gray-500'); } else if (secondsRemaining <= 10 * 60) { timerDisplay.classList.remove('text-red-500', 'text-gray-500'); timerDisplay.classList.add('text-orange-500'); } else { timerDisplay.classList.remove('text-orange-500', 'text-gray-500'); timerDisplay.classList.add('text-red-500'); } }
         function updateCurrentQuestionTimer() { if (isPaused || !examStartTime) return; currentQuestionSeconds++; currentQuestionTimeSpan.textContent = formatTimeMMSS(currentQuestionSeconds); }
-        function startExam() { const subject = subjectSelect.value; const examNumber = examNumberInput.value.trim(); const totalMinutes = parseInt(totalTimeInput.value); const totalQs = parseInt(totalQuestionsInput.value); if (!subject) { showError("Vui lòng chọn Môn thi."); return; } if (!examNumber) { showError("Vui lòng nhập Đề số / Tên bài thi."); return; } if (isNaN(totalMinutes) || totalMinutes <= 0) { showError("Vui lòng nhập tổng thời gian hợp lệ (lớn hơn 0 phút)."); return; } if (isNaN(totalQs) || totalQs <= 0) { showError("Vui lòng nhập tổng số câu hỏi hợp lệ (lớn hơn 0 câu)."); return; } totalSecondsSet = totalMinutes * 60; totalQuestionsSet = totalQs; secondsRemaining = totalSecondsSet; currentQuestionIndex = 1; isPaused = false; pausedTime = 0; totalPauseDuration = 0; currentQuestionSeconds = 0; errorMessageDiv.classList.add('hidden'); progressBar.style.width = '0%'; currentExamData = { id: Date.now(), subject: subject, examNumber: examNumber, date: new Date(), totalTimeSet: totalSecondsSet, totalQuestionsSet: totalQuestionsSet, totalTimeTaken: 0, questionTimes: [] }; hideAllSections(); examAreaDiv.classList.remove('hidden'); currentSubjectDisplay.textContent = subject; currentExamNumberDisplay.textContent = examNumber; timerDisplay.textContent = formatTime(totalSecondsSet); timerDisplay.classList.remove('text-orange-500', 'text-gray-500'); timerDisplay.classList.add('text-red-500'); currentQuestionNumberSpan.textContent = currentQuestionIndex; totalQuestionsDisplay.textContent = totalQuestionsSet; currentQuestionTimeSpan.textContent = '00:00'; currentQuestionNumberLabel.textContent = currentQuestionIndex; populateLabelDropdown(examLabelSelect, 'Chưa gán'); if (totalQuestionsSet <= 0) { nextQuestionButton.disabled = true; endExamButton.disabled = true; pauseResumeButton.disabled = true; examLabelSelect.disabled = true; } else { nextQuestionButton.disabled = false; endExamButton.disabled = false; pauseResumeButton.disabled = false; pauseResumeButton.textContent = 'Tạm dừng'; pauseResumeButton.classList.remove('bg-green-500', 'hover:bg-green-600'); pauseResumeButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600'); examLabelSelect.disabled = false; } if (totalQuestionsSet === 1) { nextQuestionButton.textContent = "Hoàn thành câu cuối"; } else { nextQuestionButton.textContent = "Hoàn thành câu / Bài tiếp theo"; } const now = Date.now(); examStartTime = now; questionStartTime = now; if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(updateTimer, 1000); updateTimer(); if (currentQuestionTimerInterval) clearInterval(currentQuestionTimerInterval); currentQuestionTimerInterval = setInterval(updateCurrentQuestionTimer, 1000); updateCurrentQuestionTimer(); }
+        async function startExam() { // Made async for await requestWakeLock
+            const subject = subjectSelect.value; const examNumber = examNumberInput.value.trim(); const totalMinutes = parseInt(totalTimeInput.value); const totalQs = parseInt(totalQuestionsInput.value);
+            if (!subject) { showError("Vui lòng chọn Môn thi."); return; } if (!examNumber) { showError("Vui lòng nhập Đề số / Tên bài thi."); return; } if (isNaN(totalMinutes) || totalMinutes <= 0) { showError("Vui lòng nhập tổng thời gian hợp lệ (lớn hơn 0 phút)."); return; } if (isNaN(totalQs) || totalQs <= 0) { showError("Vui lòng nhập tổng số câu hỏi hợp lệ (lớn hơn 0 câu)."); return; }
+
+            totalSecondsSet = totalMinutes * 60; totalQuestionsSet = totalQs; secondsRemaining = totalSecondsSet; currentQuestionIndex = 1; isPaused = false; isExamRunning = true; /* Set exam running flag */ pausedTime = 0; totalPauseDuration = 0; currentQuestionSeconds = 0; errorMessageDiv.classList.add('hidden'); progressBar.style.width = '0%';
+            currentExamData = { id: Date.now(), subject: subject, examNumber: examNumber, date: new Date(), totalTimeSet: totalSecondsSet, totalQuestionsSet: totalQuestionsSet, totalTimeTaken: 0, questionTimes: [] };
+
+            hideAllSections();
+            examAreaDiv.classList.remove('hidden');
+             if (isWakeLockSupported) { wakeLockControl.classList.remove('hidden'); } // Show wake lock if supported
+             updateWakeLockStatus(); // Update initial status
+
+            currentSubjectDisplay.textContent = subject; currentExamNumberDisplay.textContent = examNumber; timerDisplay.textContent = formatTime(totalSecondsSet); timerDisplay.classList.remove('text-orange-500', 'text-gray-500'); timerDisplay.classList.add('text-red-500'); currentQuestionNumberSpan.textContent = currentQuestionIndex; totalQuestionsDisplay.textContent = totalQuestionsSet; currentQuestionTimeSpan.textContent = '00:00'; currentQuestionNumberLabel.textContent = currentQuestionIndex;
+            populateLabelDropdown(examLabelSelect, 'Chưa gán');
+
+            if (totalQuestionsSet <= 0) { nextQuestionButton.disabled = true; endExamButton.disabled = true; pauseResumeButton.disabled = true; examLabelSelect.disabled = true; keepScreenOnToggle.disabled = true; }
+            else { nextQuestionButton.disabled = false; endExamButton.disabled = false; pauseResumeButton.disabled = false; pauseResumeButton.textContent = 'Tạm dừng'; pauseResumeButton.classList.remove('bg-green-500', 'hover:bg-green-600'); pauseResumeButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600'); examLabelSelect.disabled = false; keepScreenOnToggle.disabled = false; }
+            if (totalQuestionsSet === 1) { nextQuestionButton.textContent = "Hoàn thành câu cuối"; } else { nextQuestionButton.textContent = "Hoàn thành câu / Bài tiếp theo"; }
+
+            const now = Date.now(); examStartTime = now; questionStartTime = now;
+            if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(updateTimer, 1000); updateTimer();
+            if (currentQuestionTimerInterval) clearInterval(currentQuestionTimerInterval); currentQuestionTimerInterval = setInterval(updateCurrentQuestionTimer, 1000); updateCurrentQuestionTimer();
+
+            await requestWakeLock(); // Request wake lock after starting
+        }
         function nextQuestion() { if (isPaused) { showError("Vui lòng tiếp tục bài thi trước khi chuyển câu."); return; } if (currentQuestionIndex > totalQuestionsSet) { showError(`Đã hoàn thành đủ ${totalQuestionsSet} câu.`); nextQuestionButton.disabled = true; return; } const now = Date.now(); const timeSpent = currentQuestionSeconds; const selectedLabel = examLabelSelect.value; if (currentExamData) { currentExamData.questionTimes.push({ time: timeSpent, label: selectedLabel, questionNumber: currentQuestionIndex }); } else { console.error("currentExamData is null when trying to save question time."); return; } currentQuestionSeconds = 0; currentQuestionTimeSpan.textContent = '00:00'; populateLabelDropdown(examLabelSelect, 'Chưa gán'); if (currentQuestionIndex === totalQuestionsSet) { endExam(); return; } currentQuestionIndex++; currentQuestionNumberSpan.textContent = currentQuestionIndex; currentQuestionNumberLabel.textContent = currentQuestionIndex; questionStartTime = now; if (currentQuestionIndex === totalQuestionsSet) { nextQuestionButton.textContent = "Hoàn thành câu cuối"; } else { nextQuestionButton.textContent = "Hoàn thành câu / Bài tiếp theo"; } }
         function confirmAndEndExam() { if (examStartTime > 0 || isPaused) { if (confirm("Bạn có chắc chắn muốn kết thúc bài thi?")) { endExam(); } } else { console.log("Không có bài thi nào đang diễn ra để kết thúc."); } }
-        function endExam() { if (!examStartTime && !isPaused) { console.log("Bài thi đã kết thúc hoặc chưa bắt đầu."); return; } clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval); timerInterval = null; currentQuestionTimerInterval = null; nextQuestionButton.disabled = true; endExamButton.disabled = true; pauseResumeButton.disabled = true; examLabelSelect.disabled = true; const endTime = isPaused ? pausedTime : Date.now(); if (examStartTime > 0 && currentExamData && currentExamData.questionTimes.length < currentQuestionIndex) { const lastQuestionTimeSpent = currentQuestionSeconds; const lastSelectedLabel = examLabelSelect.value; if (!currentExamData.questionTimes.some(q => q.questionNumber === currentQuestionIndex)) { currentExamData.questionTimes.push({ time: lastQuestionTimeSpent, label: lastSelectedLabel, questionNumber: currentQuestionIndex }); } } const totalTimeSpentSeconds = examStartTime > 0 ? Math.max(0, Math.floor((endTime - examStartTime - totalPauseDuration) / 1000)) : 0; if (currentExamData) { currentExamData.totalTimeTaken = totalTimeSpentSeconds; } else { console.error("currentExamData is null when trying to finalize exam data."); showError("Lỗi: Không thể lưu dữ liệu bài thi."); showSettings(); return; } if (totalSecondsSet > 0) { const finalPercentage = Math.max(0, Math.min(100, (currentExamData.totalTimeTaken / totalSecondsSet) * 100)); progressBar.style.width = `${finalPercentage}%`; } else { progressBar.style.width = '100%'; } saveExamToHistory(currentExamData); displayResults(currentExamData); hideAllSections(); resultsAreaDiv.classList.remove('hidden'); examStartTime = 0; questionStartTime = 0; isPaused = false; pausedTime = 0; totalPauseDuration = 0; currentQuestionSeconds = 0; }
-        function togglePauseResume() { if (!examStartTime) { showError("Bài thi chưa bắt đầu."); return; } if (timerInterval === null && currentQuestionTimerInterval === null && !isPaused) { showError("Bài thi đã kết thúc."); return; } const now = Date.now(); if (isPaused) { isPaused = false; const currentPauseDuration = now - pausedTime; totalPauseDuration += currentPauseDuration; pausedTime = 0; pauseResumeButton.textContent = 'Tạm dừng'; pauseResumeButton.classList.remove('bg-green-500', 'hover:bg-green-600'); pauseResumeButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600'); if (currentQuestionIndex <= totalQuestionsSet) { nextQuestionButton.disabled = false; } endExamButton.disabled = false; examLabelSelect.disabled = false; updateTimer(); if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(updateTimer, 1000); updateCurrentQuestionTimer(); if (currentQuestionTimerInterval) clearInterval(currentQuestionTimerInterval); currentQuestionTimerInterval = setInterval(updateCurrentQuestionTimer, 1000); } else { isPaused = true; pausedTime = now; clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval); timerInterval = null; currentQuestionTimerInterval = null; pauseResumeButton.textContent = 'Tiếp tục'; pauseResumeButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600'); pauseResumeButton.classList.add('bg-green-500', 'hover:bg-green-600'); nextQuestionButton.disabled = true; endExamButton.disabled = true; examLabelSelect.disabled = true; } }
+        async function endExam() { // Made async for await releaseWakeLock
+            if (!examStartTime && !isPaused) { console.log("Bài thi đã kết thúc hoặc chưa bắt đầu."); return; }
+            isExamRunning = false; // Set exam not running
+            clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval); timerInterval = null; currentQuestionTimerInterval = null;
+            nextQuestionButton.disabled = true; endExamButton.disabled = true; pauseResumeButton.disabled = true; examLabelSelect.disabled = true; keepScreenOnToggle.disabled = true; /* Disable toggle */
+            const endTime = isPaused ? pausedTime : Date.now();
+            if (examStartTime > 0 && currentExamData && currentExamData.questionTimes.length < currentQuestionIndex) { const lastQuestionTimeSpent = currentQuestionSeconds; const lastSelectedLabel = examLabelSelect.value; if (!currentExamData.questionTimes.some(q => q.questionNumber === currentQuestionIndex)) { currentExamData.questionTimes.push({ time: lastQuestionTimeSpent, label: lastSelectedLabel, questionNumber: currentQuestionIndex }); } }
+            const totalTimeSpentSeconds = examStartTime > 0 ? Math.max(0, Math.floor((endTime - examStartTime - totalPauseDuration) / 1000)) : 0;
+            if (currentExamData) { currentExamData.totalTimeTaken = totalTimeSpentSeconds; } else { console.error("currentExamData is null when trying to finalize exam data."); showError("Lỗi: Không thể lưu dữ liệu bài thi."); showSettings(); return; }
+            if (totalSecondsSet > 0) { const finalPercentage = Math.max(0, Math.min(100, (currentExamData.totalTimeTaken / totalSecondsSet) * 100)); progressBar.style.width = `${finalPercentage}%`; } else { progressBar.style.width = '100%'; }
+
+            await releaseWakeLock(); // Release lock before showing results
+            if (wakeLockControl) wakeLockControl.classList.add('hidden'); // Hide control
+
+            saveExamToHistory(currentExamData);
+            displayResults(currentExamData);
+            hideAllSections();
+            resultsAreaDiv.classList.remove('hidden');
+            examStartTime = 0; questionStartTime = 0; isPaused = false; pausedTime = 0; totalPauseDuration = 0; currentQuestionSeconds = 0;
+        }
+        async function togglePauseResume() { // Made async for await request/release
+            if (!examStartTime) { showError("Bài thi chưa bắt đầu."); return; } if (timerInterval === null && currentQuestionTimerInterval === null && !isPaused) { showError("Bài thi đã kết thúc."); return; }
+            const now = Date.now();
+            if (isPaused) { // --- RESUME ---
+                isPaused = false; const currentPauseDuration = now - pausedTime; totalPauseDuration += currentPauseDuration; pausedTime = 0; pauseResumeButton.textContent = 'Tạm dừng'; pauseResumeButton.classList.remove('bg-green-500', 'hover:bg-green-600'); pauseResumeButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600'); if (currentQuestionIndex <= totalQuestionsSet) { nextQuestionButton.disabled = false; } endExamButton.disabled = false; examLabelSelect.disabled = false; keepScreenOnToggle.disabled = false; updateTimer(); if (timerInterval) clearInterval(timerInterval); timerInterval = setInterval(updateTimer, 1000); updateCurrentQuestionTimer(); if (currentQuestionTimerInterval) clearInterval(currentQuestionTimerInterval); currentQuestionTimerInterval = setInterval(updateCurrentQuestionTimer, 1000);
+                await requestWakeLock(); // Request lock on resume
+            } else { // --- PAUSE ---
+                isPaused = true; pausedTime = now; clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval); timerInterval = null; currentQuestionTimerInterval = null; pauseResumeButton.textContent = 'Tiếp tục'; pauseResumeButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600'); pauseResumeButton.classList.add('bg-green-500', 'hover:bg-green-600'); nextQuestionButton.disabled = true; endExamButton.disabled = true; examLabelSelect.disabled = true; keepScreenOnToggle.disabled = true;
+                await releaseWakeLock(); // Release lock on pause
+            }
+        }
 
         // === Filtering and Display ===
         function createLabelSelectHTML(currentLabel, ariaLabel, className = 'label-select') { const allLabels = getAllLabels(); const selectedLabel = allLabels.includes(currentLabel) ? currentLabel : 'Chưa gán'; const styleClasses = getLabelStyleClasses(selectedLabel); return ` <select class="${className} ${styleClasses.bg} ${styleClasses.text}" aria-label="${ariaLabel}"> ${allLabels.map(opt => `<option value="${opt}" ${selectedLabel === opt ? 'selected' : ''}>${opt}</option>`).join('')} </select> `; }
@@ -234,7 +367,7 @@
         function displayResults(examData) { if (!examData) { showError("Không có dữ liệu kết quả để hiển thị."); showSettings(); return; } resultSubjectDisplay.textContent = examData.subject || 'N/A'; resultExamNumberDisplay.textContent = examData.examNumber || 'N/A'; resultDateDisplay.textContent = formatDate(examData.date); totalTimeTakenSpan.textContent = formatTime(examData.totalTimeTaken); totalTimeSetDisplay.textContent = formatTime(examData.totalTimeSet); totalQuestionsSetDisplay.textContent = examData.totalQuestionsSet; const totalCompletedQuestions = examData.questionTimes?.length || 0; const averageTimePerQuestion = totalCompletedQuestions > 0 ? Math.round(examData.totalTimeTaken / totalCompletedQuestions) : 0; const targetTimePerQuestion = examData.totalQuestionsSet > 0 ? Math.round(examData.totalTimeSet / examData.totalQuestionsSet) : 0; averageTimePerQuestionDisplay.textContent = `${formatTimeInSeconds(averageTimePerQuestion)} (${averageTimePerQuestion} giây)`; targetTimePerQuestionDisplay.textContent = `${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion} giây)`; statsTableBody.innerHTML = ''; if (totalCompletedQuestions > 0) { examData.questionTimes.forEach((qTimeData) => { const questionNumber = qTimeData.questionNumber || 'N/A'; const timeTaken = qTimeData.time ?? 0; const label = qTimeData.label || 'Chưa gán'; const deviation = timeTaken - targetTimePerQuestion; const deviationText = targetTimePerQuestion > 0 ? (deviation >= 0 ? `+${formatTimeInSeconds(deviation)}` : `-${formatTimeInSeconds(Math.abs(deviation))}`) : 'N/A'; const deviationTooltip = targetTimePerQuestion > 0 ? `Mục tiêu: ${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion}s)` : ''; let rowClass = ''; if (targetTimePerQuestion > 0) { const percentDeviation = (deviation / targetTimePerQuestion) * 100; if (percentDeviation > 30) rowClass = 'too-slow'; else if (percentDeviation < -20) rowClass = 'too-fast'; } const row = document.createElement('tr'); if (rowClass) row.classList.add(rowClass); row.dataset.examId = examData.id; row.dataset.questionNumber = questionNumber; const selectHTML = createLabelSelectHTML(label, `Chọn nhãn cho câu ${questionNumber}`, 'label-select'); row.innerHTML = `<td>Câu ${questionNumber}</td><td>${formatTimeInSeconds(timeTaken)} (${timeTaken} giây)</td><td title="${deviationTooltip}">${deviationText}</td><td>${selectHTML}</td>`; const selectElement = row.querySelector('.label-select'); selectElement.addEventListener('change', (e) => { const newLabel = e.target.value; const examId = row.dataset.examId; const qNumber = parseInt(row.dataset.questionNumber); if (examId && !isNaN(qNumber)) { updateLabelInHistory(examId, qNumber, newLabel); const styleClasses = getLabelStyleClasses(newLabel); selectElement.className = `label-select ${styleClasses.bg} ${styleClasses.text}`; const updatedExamData = getExamFromHistory(examId); if (updatedExamData) { displayStatsByLabel(updatedExamData, statsByLabelArea); populateFilterDropdown(resultsFilterLabelSelect, updatedExamData.questionTimes); filterTableRows(statsTableBody, resultsFilterLabelSelect.value); } } }); statsTableBody.appendChild(row); }); } else { statsTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-3">Không có dữ liệu thời gian cho câu nào.</td></tr>'; } populateFilterDropdown(resultsFilterLabelSelect, examData.questionTimes); displayStatsByLabel(examData, statsByLabelArea); filterTableRows(statsTableBody, ALL_LABELS_FILTER_VALUE); }
         function displayStatsByLabel(examData, targetElement) { targetElement.innerHTML = ''; if (!examData || !examData.questionTimes || examData.questionTimes.length === 0) { targetElement.innerHTML = '<p class="text-center text-gray-500 italic text-sm py-2">Không có dữ liệu câu hỏi để thống kê.</p>'; return; } const stats = {}; let totalAssigned = 0; const allLabels = getAllLabels(); allLabels.forEach(lbl => { if (lbl !== 'Chưa gán') { stats[lbl] = { totalTime: 0, count: 0 }; } }); let unassignedStats = { totalTime: 0, count: 0 }; examData.questionTimes.forEach(qData => { const label = qData.label || 'Chưa gán'; const time = qData.time ?? 0; if (label === 'Chưa gán') { unassignedStats.totalTime += time; unassignedStats.count++; } else if (stats[label]) { stats[label].totalTime += time; stats[label].count++; totalAssigned++; } else { unassignedStats.totalTime += time; unassignedStats.count++; } }); if (totalAssigned === 0 && unassignedStats.count === examData.questionTimes.length) { targetElement.innerHTML = '<p class="text-center text-gray-500 italic text-sm py-2">Gán nhãn cho câu hỏi ở bảng trên để xem thống kê.</p>'; return; } const statsToDisplay = []; for (const label in stats) { if (stats[label].count > 0) { const average = Math.round(stats[label].totalTime / stats[label].count); statsToDisplay.push({ label: label, average: average, count: stats[label].count }); } } statsToDisplay.sort((a, b) => { const indexA = DEFAULT_LABELS.indexOf(a.label); const indexB = DEFAULT_LABELS.indexOf(b.label); if (indexA !== -1 && indexB !== -1) return indexA - indexB; if (indexA !== -1) return -1; if (indexB !== -1) return 1; return a.label.localeCompare(b.label); }); if (unassignedStats.count > 0) { const average = Math.round(unassignedStats.totalTime / unassignedStats.count); statsToDisplay.push({ label: 'Chưa gán', average: average, count: unassignedStats.count }); } statsToDisplay.forEach(item => { const styleClasses = getLabelStyleClasses(item.label); const p = document.createElement('p'); p.innerHTML = `<span class="color-square ${styleClasses.bg}"></span><span class="font-medium">${item.label}:</span> Trung bình ${formatTimeInSeconds(item.average)} (${item.average} giây) / ${item.count} câu`; targetElement.appendChild(p); }); }
 
-        // === Quản lý Lịch sử ===
+        // === History Management ===
         function getHistory() { const historyJson = localStorage.getItem(HISTORY_STORAGE_KEY); try { const history = historyJson ? JSON.parse(historyJson) : []; const currentAllLabels = getAllLabels(); return history.map(item => { if (item && item.id && item.date && typeof item.date === 'string') { const dateObj = new Date(item.date); if (!isNaN(dateObj.getTime())) { item.questionTimes = Array.isArray(item.questionTimes) ? item.questionTimes : []; item.questionTimes = item.questionTimes.map(q => ({ ...q, label: q.label && currentAllLabels.includes(q.label) ? q.label : 'Chưa gán' })); return { ...item, date: dateObj }; } } return null; }).filter(item => item !== null); } catch (e) { console.error("Lỗi đọc lịch sử từ localStorage:", e); showError("Lỗi đọc dữ liệu lịch sử. Dữ liệu có thể đã bị hỏng."); return []; } }
         function saveHistoryToStorage(historyArray) { try { const historyToSave = historyArray.map(item => ({ ...item, date: item.date instanceof Date ? item.date.toISOString() : item.date })); localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyToSave)); } catch (e) { console.error("Lỗi lưu lịch sử vào localStorage:", e); showError("Không thể lưu lịch sử. Bộ nhớ trình duyệt có thể đã đầy."); } }
         function saveExamToHistory(examData) { if (!examData || !examData.id || !(examData.date instanceof Date)) { console.error("Dữ liệu bài thi không hợp lệ để lưu:", examData); return; }; const history = getHistory(); const existingIndex = history.findIndex(item => item.id === examData.id); if (existingIndex === -1) { history.push(examData); } else { console.warn(`Bài thi ID ${examData.id} đã tồn tại. Ghi đè dữ liệu.`); history[existingIndex] = examData; } saveHistoryToStorage(history); }
@@ -243,7 +376,7 @@
         function deleteExamFromHistory(examId) { const numericExamId = typeof examId === 'string' ? Number(examId) : examId; if (isNaN(numericExamId)) return; let history = getHistory(); history = history.filter(exam => exam.id !== numericExamId); saveHistoryToStorage(history); console.log(`Đã xóa bài thi ID ${numericExamId} khỏi lịch sử.`); }
         function clearAllHistory() { const history = getHistory(); if (history.length === 0) { showError("Lịch sử đã trống."); return; } if (confirm("⚠️ CẢNH BÁO:\n\nBạn có chắc chắn muốn XÓA TOÀN BỘ lịch sử thi không?\nHành động này sẽ xóa vĩnh viễn tất cả dữ liệu đã lưu và KHÔNG THỂ HOÀN TÁC.")) { localStorage.removeItem(HISTORY_STORAGE_KEY); console.log("Đã xóa toàn bộ lịch sử thi."); displayHistory(); showError("Đã xóa toàn bộ lịch sử."); } }
         function exportHistory() { const history = getHistory(); if (history.length === 0) { showError("Không có lịch sử nào để xuất."); return; } const historyForExport = history.map(item => ({ ...item, date: item.date instanceof Date ? item.date.toISOString() : item.date })); const historyJson = JSON.stringify(historyForExport, null, 2); const blob = new Blob([historyJson], { type: 'application/json;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.style.display = 'none'; a.href = url; const dateStr = new Date().toISOString().slice(0, 10); a.download = `lich_su_thi_thu_${dateStr}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showError("Đã xuất lịch sử thành công."); }
-        function displayHistory() { clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval); timerInterval = null; currentQuestionTimerInterval = null; isPaused = false; pausedTime = 0; totalPauseDuration = 0; hideAllSections(); historyAreaDiv.classList.remove('hidden'); const history = getHistory(); historyTableBody.innerHTML = ''; if (history.length === 0) { historyTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-gray-500 py-4 italic">Chưa có lịch sử thi nào.</td></tr>`; return; } history.sort((a, b) => b.date.getTime() - a.date.getTime()); history.forEach(exam => { const examSubject = exam.subject || 'Không rõ môn'; const examNumber = exam.examNumber || 'Không rõ đề'; const examDate = formatDate(exam.date); const timeTaken = (exam.totalTimeTaken !== undefined && exam.totalTimeTaken !== null) ? formatTime(exam.totalTimeTaken) : 'N/A'; const row = document.createElement('tr'); row.classList.add('hover:bg-gray-50'); row.innerHTML = ` <td class="whitespace-nowrap">${examDate}</td> <td>${examSubject}</td> <td>${examNumber}</td> <td class="whitespace-nowrap">${timeTaken}</td> <td> <button class="text-blue-600 hover:text-blue-800 text-sm font-medium view-detail-btn" data-id="${exam.id}">Xem</button> </td> <td> <button class="text-red-600 hover:text-red-800 text-sm font-medium delete-history-btn" data-id="${exam.id}">Xóa</button> </td> `; historyTableBody.appendChild(row); }); }
+        function displayHistory() { clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval); timerInterval = null; currentQuestionTimerInterval = null; isPaused = false; isExamRunning = false; pausedTime = 0; totalPauseDuration = 0; releaseWakeLock(); hideAllSections(); historyAreaDiv.classList.remove('hidden'); const history = getHistory(); historyTableBody.innerHTML = ''; if (history.length === 0) { historyTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-gray-500 py-4 italic">Chưa có lịch sử thi nào.</td></tr>`; return; } history.sort((a, b) => b.date.getTime() - a.date.getTime()); history.forEach(exam => { const examSubject = exam.subject || 'Không rõ môn'; const examNumber = exam.examNumber || 'Không rõ đề'; const examDate = formatDate(exam.date); const timeTaken = (exam.totalTimeTaken !== undefined && exam.totalTimeTaken !== null) ? formatTime(exam.totalTimeTaken) : 'N/A'; const row = document.createElement('tr'); row.classList.add('hover:bg-gray-50'); row.innerHTML = ` <td class="whitespace-nowrap">${examDate}</td> <td>${examSubject}</td> <td>${examNumber}</td> <td class="whitespace-nowrap">${timeTaken}</td> <td> <button class="text-blue-600 hover:text-blue-800 text-sm font-medium view-detail-btn" data-id="${exam.id}">Xem</button> </td> <td> <button class="text-red-600 hover:text-red-800 text-sm font-medium delete-history-btn" data-id="${exam.id}">Xóa</button> </td> `; historyTableBody.appendChild(row); }); }
         function handleHistoryTableClick(e) { const target = e.target; if (target && target.classList.contains('view-detail-btn')) { const examId = target.getAttribute('data-id'); if (examId) { showHistoryDetail(examId); } } else if (target && target.classList.contains('delete-history-btn')) { const examId = target.getAttribute('data-id'); if (examId) { const examData = getExamFromHistory(examId); const subject = examData?.subject || 'N/A'; const number = examData?.examNumber || 'N/A'; const date = formatDate(examData?.date); const confirmMsg = `Bạn có chắc chắn muốn xóa bài thi:\n\n"${subject} - ${number}"\n(Làm ngày: ${date})\n\nHành động này không thể hoàn tác.`; if (confirm(confirmMsg)) { deleteExamFromHistory(examId); displayHistory(); showError("Đã xóa bài thi khỏi lịch sử."); } } } }
         function showHistoryDetail(examId) { const examData = getExamFromHistory(examId); if (!examData) { showError("Không tìm thấy dữ liệu chi tiết cho bài thi này."); return; } modalTitle.textContent = `Chi tiết: ${examData.subject || 'N/A'} - ${examData.examNumber || 'N/A'}`; modalSubject.textContent = examData.subject || 'N/A'; modalExamNumber.textContent = examData.examNumber || 'N/A'; modalDate.textContent = formatDate(examData.date); modalTotalTimeTaken.textContent = formatTime(examData.totalTimeTaken); modalTotalTimeSet.textContent = formatTime(examData.totalTimeSet); modalTotalQuestionsSet.textContent = examData.totalQuestionsSet || 'N/A'; const targetTimePerQuestion = (examData.totalQuestionsSet > 0 && examData.totalTimeSet >= 0) ? Math.round(examData.totalTimeSet / examData.totalQuestionsSet) : 0; modalTargetTimePerQuestion.textContent = `${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion} giây)`; const totalCompletedQuestions = examData.questionTimes?.length || 0; const averageTimePerQuestion = totalCompletedQuestions > 0 ? Math.round(examData.totalTimeTaken / totalCompletedQuestions) : 0; modalAverageTimePerQuestion.textContent = `${formatTimeInSeconds(averageTimePerQuestion)} (${averageTimePerQuestion} giây)`; modalStatsTableBody.innerHTML = ''; if (totalCompletedQuestions > 0) { const sortedQuestions = [...examData.questionTimes].sort((a, b) => (a.questionNumber || 0) - (b.questionNumber || 0)); sortedQuestions.forEach((qTimeData) => { const questionNumber = qTimeData.questionNumber || 'N/A'; const timeTaken = qTimeData.time ?? 0; const label = qTimeData.label; const deviation = timeTaken - targetTimePerQuestion; const deviationText = targetTimePerQuestion > 0 ? (deviation >= 0 ? `+${formatTimeInSeconds(deviation)}` : `-${formatTimeInSeconds(Math.abs(deviation))}`) : 'N/A'; const deviationTooltip = targetTimePerQuestion > 0 ? `Mục tiêu: ${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion}s)` : ''; const row = document.createElement('tr'); row.dataset.examId = examData.id; row.dataset.questionNumber = questionNumber; const selectHTML = createLabelSelectHTML(label, `Chọn nhãn cho câu ${questionNumber} trong modal`, 'label-select-modal'); row.innerHTML = `<td>Câu ${questionNumber}</td><td>${formatTimeInSeconds(timeTaken)} (${timeTaken} giây)</td><td title="${deviationTooltip}">${deviationText}</td><td>${selectHTML}</td>`; modalStatsTableBody.appendChild(row); }); } else { modalStatsTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-3 italic">Không có dữ liệu thời gian câu hỏi.</td></tr>'; } populateFilterDropdown(modalFilterLabelSelect, examData.questionTimes); displayStatsByLabel(examData, modalStatsByLabelArea); filterTableRows(modalStatsTableBody, ALL_LABELS_FILTER_VALUE); historyDetailModal.style.display = "block"; document.body.style.overflow = 'hidden'; }
         function closeModal() { historyDetailModal.style.display = "none"; document.body.style.overflow = ''; }
@@ -254,22 +387,42 @@
         // Label Management
         manageLabelsButton.addEventListener('click', showLabelManagement); addLabelButton.addEventListener('click', addCustomLabel); backToSettingsFromLabelsButton.addEventListener('click', showSettings);
         customLabelsList.addEventListener('click', (e) => { if (e.target && e.target.classList.contains('delete-label-btn')) { const labelToDelete = e.target.dataset.label; if (labelToDelete && confirm(`Bạn có chắc chắn muốn xóa nhãn "${labelToDelete}" không?`)) { deleteCustomLabel(labelToDelete); } } });
-        // Subject Management (NEW)
+        // Subject Management
         manageSubjectsButton.addEventListener('click', showSubjectManagement);
         addSubjectButton.addEventListener('click', addSubject);
         backToSettingsFromSubjectsButton.addEventListener('click', showSettings);
-        subjectsList.addEventListener('click', handleSubjectManagementListClick); // Use delegation for delete buttons
-        // History Table Click (Delegation - CORRECTED)
-        historyTableBody.removeEventListener('click', handleHistoryTableClick); // Ensure no duplicates if script re-runs
-        historyTableBody.addEventListener('click', handleHistoryTableClick); // Add the listener
-        // Modal Label Select Change (Delegation)
+        subjectsList.addEventListener('click', handleSubjectManagementListClick);
+        // History Table Click
+        historyTableBody.removeEventListener('click', handleHistoryTableClick); historyTableBody.addEventListener('click', handleHistoryTableClick);
+        // Modal Label Select Change
         modalStatsTableBody.addEventListener('change', (e) => { if (e.target && e.target.classList.contains('label-select-modal')) { const selectElement = e.target; const row = selectElement.closest('tr'); if (!row) return; const newLabel = selectElement.value; const examId = row.dataset.examId; const qNumber = parseInt(row.dataset.questionNumber); if (examId && !isNaN(qNumber)) { updateLabelInHistory(examId, qNumber, newLabel); const styleClasses = getLabelStyleClasses(newLabel); selectElement.className = `label-select-modal ${styleClasses.bg} ${styleClasses.text}`; const updatedExamData = getExamFromHistory(examId); if (updatedExamData) { displayStatsByLabel(updatedExamData, modalStatsByLabelArea); populateFilterDropdown(modalFilterLabelSelect, updatedExamData.questionTimes); filterTableRows(modalStatsTableBody, modalFilterLabelSelect.value); } } else { console.error("Lỗi: Không lấy được examId hoặc questionNumber từ data attributes trong modal."); } } });
         // Filter Dropdown Listeners
         resultsFilterLabelSelect.addEventListener('change', (e) => { filterTableRows(statsTableBody, e.target.value); });
         modalFilterLabelSelect.addEventListener('change', (e) => { filterTableRows(modalStatsTableBody, e.target.value); });
+        // Wake Lock Listener (NEW)
+        keepScreenOnToggle.addEventListener('change', async (e) => {
+            if (e.target.checked) {
+                await requestWakeLock();
+            } else {
+                await releaseWakeLock();
+            }
+        });
+        // Visibility Change Listener (NEW)
+         document.addEventListener('visibilitychange', handleVisibilityChange);
+
 
         // === Initialization ===
-        document.addEventListener('DOMContentLoaded', () => { showSettings(); });
+        document.addEventListener('DOMContentLoaded', () => {
+            showSettings();
+             // Check wake lock support and show control if needed (but hidden initially by CSS)
+            if (isWakeLockSupported && wakeLockControl) {
+                 // console.log("Wake Lock API is supported.");
+                 // Control visibility is handled in startExam/showSettings
+            } else if(wakeLockControl) {
+                 // console.log("Wake Lock API is not supported.");
+                 wakeLockControl.style.display = 'none'; // Ensure it's hidden if not supported
+            }
+        });
     </script>
 </body>
 </html>
