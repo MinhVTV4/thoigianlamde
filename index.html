@@ -5,20 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ứng dụng Hẹn giờ Thi thử Thông minh</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Font Inter */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        :root {
+             /* Light mode colors (default) */
+            --bg-primary: #f3f4f6; /* gray-100 */
+            --bg-secondary: #ffffff; /* white */
+            --text-primary: #1f2937; /* gray-800 */
+            --text-secondary: #4b5563; /* gray-600 */
+            --text-accent: #3b82f6; /* blue-600 */
+            --border-color: #e5e7eb; /* gray-200 */
+            --table-header-bg: #f1f5f9; /* gray-100 */
+            --input-border: #d1d5db; /* gray-300 */
+            --input-focus-ring: rgba(59, 130, 246, 0.3);
+            --modal-overlay: rgba(0,0,0,0.5);
+            --highlight-slow: #fef3c7; /* yellow-100 */
+            --highlight-fast: #d1fae5; /* green-100 */
+            --highlight-average: #dbeafe; /* blue-100 */
+            --info-bg: #eff6ff; /* blue-50 */
+            --info-border: #bfdbfe; /* blue-200 */
+            --info-text: #1e40af; /* blue-800 */
+            --success-bg: #f0fdf4; /* green-50 */
+            --success-border: #bbf7d0; /* green-200 */
+            --success-text: #166534; /* green-800 */
+            --error-bg: #fef2f2; /* red-50 */
+            --error-border: #fecaca; /* red-200 */
+            --error-text: #b91c1c; /* red-700 */
+            --warning-timer-text: #f97316; /* orange-500 */
+            --end-timer-text: #6b7280; /* gray-500 */
+        }
+
+        .dark {
+            /* Dark mode colors */
+            --bg-primary: #1f2937; /* gray-800 */
+            --bg-secondary: #374151; /* gray-700 */
+            --text-primary: #f9fafb; /* gray-50 */
+            --text-secondary: #d1d5db; /* gray-300 */
+            --text-accent: #60a5fa; /* blue-400 */
+            --border-color: #4b5563; /* gray-600 */
+            --table-header-bg: #4b5563; /* gray-600 */
+            --input-border: #4b5563; /* gray-600 */
+            --input-focus-ring: rgba(96, 165, 250, 0.4);
+            --modal-overlay: rgba(0,0,0,0.7);
+            --highlight-slow: #4f460a; /* Adjusted yellow */
+            --highlight-fast: #064e3b; /* Adjusted green */
+            --highlight-average: #1e40af; /* Adjusted blue */
+            --info-bg: #1e3a8a; /* dark blue */
+            --info-border: #1e40af; /* darker blue */
+            --info-text: #dbeafe; /* light blue */
+            --success-bg: #14532d; /* dark green */
+            --success-border: #166534; /* darker green */
+            --success-text: #dcfce7; /* light green */
+            --error-bg: #7f1d1d; /* dark red */
+            --error-border: #991b1b; /* darker red */
+            --error-text: #fecaca; /* light red */
+            --warning-timer-text: #fb923c; /* orange-400 */
+            --end-timer-text: #9ca3af; /* gray-400 */
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Slightly lighter gray background */
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        /* Hiệu ứng nút */
+        /* Main container */
+        .main-container {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Button styles */
         button {
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease, box-shadow 0.2s ease;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease, box-shadow 0.2s ease, border-color 0.2s ease;
             border-radius: 0.375rem; /* rounded-md */
+            border: 1px solid transparent;
         }
         button:not(:disabled):hover {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Tailwind shadow-md */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         button:not(:disabled):active {
             transform: scale(0.98);
@@ -28,231 +95,307 @@
             opacity: 0.6;
             cursor: not-allowed;
         }
+        /* Specific button colors */
+        .btn-primary { background-color: #3b82f6; color: white; } /* blue-500 */
+        .btn-primary:hover:not(:disabled) { background-color: #2563eb; } /* blue-600 */
+        .btn-secondary { background-color: #6b7280; color: white; } /* gray-500 */
+        .btn-secondary:hover:not(:disabled) { background-color: #4b5563; } /* gray-600 */
+        .btn-success { background-color: #22c55e; color: white; } /* green-500 */
+        .btn-success:hover:not(:disabled) { background-color: #16a34a; } /* green-600 */
+        .btn-danger { background-color: #ef4444; color: white; } /* red-500 */
+        .btn-danger:hover:not(:disabled) { background-color: #dc2626; } /* red-600 */
+        .btn-warning { background-color: #f59e0b; color: white; } /* yellow-500 */
+        .btn-warning:hover:not(:disabled) { background-color: #d97706; } /* yellow-600 */
+        .btn-purple { background-color: #8b5cf6; color: white; } /* purple-500 */
+        .btn-purple:hover:not(:disabled) { background-color: #7c3aed; } /* purple-600 */
+        .btn-danger-outline { background-color: transparent; color: #ef4444; border-color: #ef4444; }
+        .btn-danger-outline:hover:not(:disabled) { background-color: var(--error-bg); }
+        .btn-flag.flagged { background-color: #f59e0b; color: white; } /* Yellow when flagged */
+        .btn-flag.flagged:hover:not(:disabled) { background-color: #d97706; }
 
-        /* Kiểu bảng */
+        /* Table styles */
         .stats-table th, .stats-table td {
-            border: 1px solid #e2e8f0; /* gray-300 */
+            border: 1px solid var(--border-color);
             padding: 8px 12px;
             text-align: left;
-            vertical-align: middle; /* Ensure vertical alignment */
+            vertical-align: middle;
         }
         .stats-table th {
-            background-color: #f1f5f9; /* gray-100 */
+            background-color: var(--table-header-bg);
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.75rem; /* text-xs */
-            color: #475569; /* gray-600 */
+            font-size: 0.75rem;
+            color: var(--text-secondary);
         }
          .stats-table td {
-             font-size: 0.875rem; /* text-sm */
-             color: #4a5568; /* gray-700 */
+             font-size: 0.875rem;
+             color: var(--text-primary);
          }
+         .stats-table tr:hover td {
+             background-color: rgba(0, 0, 0, 0.02); /* Subtle hover for light mode */
+         }
+         .dark .stats-table tr:hover td {
+             background-color: rgba(255, 255, 255, 0.05); /* Subtle hover for dark mode */
+         }
+
 
         /* Modal styles */
         .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 1000; /* Sit on top */
+            display: none;
+            position: fixed;
+            z-index: 1000;
             left: 0;
             top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.5); /* Slightly darker overlay */
-            padding-top: 20px; /* Adjust padding-top */
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: var(--modal-overlay);
+            padding-top: 20px;
              animation: fadeIn 0.3s ease-out;
         }
-         @keyframes fadeIn {
-             from { opacity: 0; }
-             to { opacity: 1; }
-         }
-
+         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal-content {
-            background-color: #ffffff; /* white */
-            margin: 5% auto; /* Adjust margin for better centering */
-            padding: 25px; /* Increase padding */
-            border: 1px solid #d1d5db; /* gray-300 */
-            width: 90%; /* Adjust width */
-            max-width: 700px; /* Increase max-width */
-            border-radius: 8px; /* rounded-lg */
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            margin: 5% auto;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            width: 90%;
+            max-width: 700px;
+            border-radius: 8px;
             position: relative;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
              animation: slideInFromTop 0.3s ease-out;
         }
-
-         @keyframes slideInFromTop {
-             from { transform: translateY(-30px); opacity: 0; }
-             to { transform: translateY(0); opacity: 1; }
-         }
-
+         @keyframes slideInFromTop { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
         .close-button {
-            color: #9ca3af; /* gray-400 */
+            color: var(--text-secondary);
             position: absolute;
             top: 10px;
-            right: 15px; /* Adjust position */
-            font-size: 28px; /* Adjust size */
+            right: 15px;
+            font-size: 28px;
             font-weight: bold;
             cursor: pointer;
             transition: color 0.2s ease;
         }
-        .close-button:hover,
-        .close-button:focus {
-            color: #4b5563; /* gray-600 */
+        .close-button:hover, .close-button:focus {
+            color: var(--text-primary);
             text-decoration: none;
         }
 
-        /* Responsive table container */
+        /* Table container */
          .table-container {
-             overflow-x: auto; /* Add horizontal scroll on small screens */
-             max-height: 400px; /* Giới hạn chiều cao bảng */
+             overflow-x: auto;
+             max-height: 400px;
              margin-top: 15px;
-             border: 1px solid #e5e7eb; /* gray-200 */
-             border-radius: 0.375rem; /* rounded-md */
+             border: 1px solid var(--border-color);
+             border-radius: 0.375rem;
          }
 
-         /* Specific styles for results table */
-         .results-stats-table td {
-             vertical-align: middle; /* Align content vertically */
-         }
-
-         .results-stats-table td select, .label-select-modal {
+         /* Select dropdown styles */
+         .label-select, .label-select-modal {
              padding: 4px 8px;
-             border: 1px solid #cbd5e0; /* gray-400 */
-             border-radius: 4px; /* rounded-sm */
-             font-size: 0.875rem; /* text-sm */
-             background-color: white;
+             border: 1px solid var(--input-border);
+             border-radius: 4px;
+             font-size: 0.875rem;
+             background-color: var(--bg-secondary); /* Use secondary bg for inputs */
+             color: var(--text-primary);
              cursor: pointer;
-             min-width: 110px; /* Ensure select is not too small */
-             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+             min-width: 110px;
+             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
              transition: border-color 0.2s ease, box-shadow 0.2s ease;
          }
-         .results-stats-table td select:focus, .label-select-modal:focus {
+         .label-select:focus, .label-select-modal:focus {
              outline: none;
-             border-color: #3b82f6; /* blue-500 */
-             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); /* Ring effect */
+             border-color: var(--text-accent);
+             box-shadow: 0 0 0 2px var(--input-focus-ring);
          }
-
 
          /* Highlighting rows */
-         .too-slow {
-             background-color: #fef3c7; /* yellow-100 */
-         }
-         .too-fast {
-             background-color: #d1fae5; /* green-100 */
-         }
-         .average {
-             background-color: #dbeafe; /* blue-100 */
-         }
+         .too-slow { background-color: var(--highlight-slow); }
+         .too-fast { background-color: var(--highlight-fast); }
+         .average { background-color: var(--highlight-average); }
 
-         /* Progress Bar Style */
+         /* Progress Bar */
          #progressBarContainer {
              width: 100%;
-             background-color: #e5e7eb; /* gray-200 */
-             border-radius: 9999px; /* rounded-full */
-             height: 10px; /* h-2.5 */
-             overflow: hidden; /* Ensure inner bar stays contained */
-             margin-top: 1rem; /* my-4 */
+             background-color: var(--border-color);
+             border-radius: 9999px;
+             height: 10px;
+             overflow: hidden;
+             margin-top: 1rem;
              margin-bottom: 1rem;
          }
          #progressBar {
-             background-color: #2563eb; /* blue-600 */
+             background-color: var(--text-accent);
              height: 100%;
-             border-radius: 9999px; /* rounded-full */
-             transition: width 0.5s ease-in-out; /* Smooth transition */
+             border-radius: 9999px;
+             transition: width 0.5s ease-in-out;
          }
 
-         /* Input field focus style */
+         /* Input fields */
+         input[type="text"], input[type="number"] {
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--input-border);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+         }
          input[type="text"]:focus, input[type="number"]:focus {
             outline: none;
-            border-color: #3b82f6; /* blue-500 */
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); /* Ring effect */
+            border-color: var(--text-accent);
+            box-shadow: 0 0 0 2px var(--input-focus-ring);
          }
 
-         /* Current Question Timer Style */
+         /* Current Question Timer */
          #currentQuestionTimerDisplay {
-             font-size: 1.125rem; /* text-lg */
-             color: #4b5563; /* gray-600 */
-             margin-top: 0.25rem; /* mt-1 */
+             font-size: 1.125rem;
+             color: var(--text-secondary);
+             margin-top: 0.25rem;
+         }
+         .timer-warning { color: var(--warning-timer-text) !important; }
+         .timer-ended { color: var(--end-timer-text) !important; }
+
+         /* Info/Result boxes */
+         .info-box {
+             background-color: var(--info-bg);
+             border: 1px solid var(--info-border);
+             color: var(--info-text);
+         }
+         .success-box {
+             background-color: var(--success-bg);
+             border: 1px solid var(--success-border);
+             color: var(--success-text);
+         }
+         .error-box {
+            background-color: var(--error-bg);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+         }
+
+         /* Flagged question indicator */
+         .flag-indicator {
+             color: #f59e0b; /* yellow-500 */
+             margin-left: 4px;
+             font-weight: bold;
+         }
+
+         /* Settings Toggles */
+         .settings-toggle-group label {
+             margin-right: 10px;
+             color: var(--text-secondary);
+         }
+         .settings-toggle-group input[type="checkbox"] {
+             margin-right: 4px;
+             accent-color: var(--text-accent); /* Color the checkbox */
+         }
+
+         /* Chart Container */
+         #chartContainer {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.375rem;
+            background-color: var(--bg-secondary);
          }
 
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-6 md:p-8 rounded-lg shadow-xl w-full max-w-3xl">
-        <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-600 mb-6">Ứng dụng Hẹn giờ Thi thử Thông minh</h1>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="main-container bg-white p-6 md:p-8 rounded-lg shadow-xl w-full max-w-3xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-center text-blue-600 flex-grow">Ứng dụng Hẹn giờ Thi thử Thông minh</h1>
+            <div class="settings-toggle-group flex items-center text-sm">
+                 <label for="darkModeToggle" class="flex items-center cursor-pointer" title="Chuyển đổi giao diện Sáng/Tối">
+                     <input type="checkbox" id="darkModeToggle" class="sr-only peer">
+                     <div class="relative w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-500 peer-checked:bg-blue-600"></div>
+                     <span class="ms-2 text-xs font-medium text-gray-900 dark:text-gray-300">Tối</span>
+                 </label>
+                 <label for="soundToggle" class="ml-4 flex items-center cursor-pointer" title="Bật/Tắt âm thanh thông báo">
+                     <input type="checkbox" id="soundToggle">
+                     <span class="ms-1 text-xs font-medium text-gray-900 dark:text-gray-300">Âm</span>
+                 </label>
+            </div>
+        </div>
+
 
         <div id="mainContent">
             <div id="settings" class="space-y-4">
                 <div>
-                    <label for="subjectInput" class="block text-sm font-medium text-gray-700 mb-1">Môn thi:</label>
-                    <input type="text" id="subjectInput" placeholder="Ví dụ: Toán cao cấp" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <label for="subjectInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Môn thi:</label>
+                    <input type="text" id="subjectInput" placeholder="Ví dụ: Toán cao cấp" class="w-full px-3 py-2 border rounded-md shadow-sm">
                 </div>
                 <div>
-                    <label for="examNumberInput" class="block text-sm font-medium text-gray-700 mb-1">Đề số / Tên bài thi:</label>
-                    <input type="text" id="examNumberInput" placeholder="Ví dụ: Đề 1, Giữa kỳ" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <label for="examNumberInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Đề số / Tên bài thi:</label>
+                    <input type="text" id="examNumberInput" placeholder="Ví dụ: Đề 1, Giữa kỳ" class="w-full px-3 py-2 border rounded-md shadow-sm">
                 </div>
                 <div class="flex flex-col sm:flex-row gap-4">
                     <div class="flex-1">
-                        <label for="totalTimeInput" class="block text-sm font-medium text-gray-700 mb-1">Tổng thời gian làm bài (phút):</label>
-                        <input type="number" id="totalTimeInput" value="60" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="totalTimeInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tổng thời gian làm bài (phút):</label>
+                        <input type="number" id="totalTimeInput" value="60" min="1" class="w-full px-3 py-2 border rounded-md shadow-sm">
                     </div>
                      <div class="flex-1">
-                        <label for="totalQuestionsInput" class="block text-sm font-medium text-gray-700 mb-1">Tổng số câu hỏi:</label>
-                        <input type="number" id="totalQuestionsInput" value="50" min="1" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <label for="totalQuestionsInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tổng số câu hỏi:</label>
+                        <input type="number" id="totalQuestionsInput" value="50" min="1" class="w-full px-3 py-2 border rounded-md shadow-sm">
                      </div>
                 </div>
 
-                <button id="startButton" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4">
+                <button id="startButton" class="w-full btn-primary font-bold py-2 px-4">
                     Bắt đầu làm bài
                 </button>
-                <button id="viewHistoryButton" class="mt-3 w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4">
+                <button id="viewHistoryButton" class="mt-3 w-full btn-secondary font-bold py-2 px-4">
                     Xem Lịch sử Thi
                 </button>
             </div>
 
             <div id="examArea" class="hidden space-y-4">
-                <div class="text-center mb-4 p-3 bg-blue-50 rounded-md border border-blue-200">
-                    <p class="text-sm font-medium text-blue-800">Môn: <span id="currentSubjectDisplay" class="font-semibold"></span> - Đề: <span id="currentExamNumberDisplay" class="font-semibold"></span></p>
+                <div class="text-center mb-4 p-3 info-box rounded-md">
+                    <p class="text-sm font-medium">Môn: <span id="currentSubjectDisplay" class="font-semibold"></span> - Đề: <span id="currentExamNumberDisplay" class="font-semibold"></span></p>
                 </div>
                 <div class="text-center">
-                    <p class="text-lg font-medium text-gray-700">Thời gian còn lại:</p>
+                    <p class="text-lg font-medium text-gray-700 dark:text-gray-300">Thời gian còn lại:</p>
                     <div id="timerDisplay" class="text-4xl md:text-5xl font-bold text-red-500 my-2">00:00:00</div>
-                    <p id="currentQuestionTimerDisplay" class="text-lg text-gray-600 mt-1">Thời gian câu này: <span id="currentQuestionTime">00:00</span></p>
-                    <p class="text-sm text-gray-500 mt-2">Đang làm câu: <span id="currentQuestionNumber" class="font-semibold">1</span> / <span id="totalQuestionsDisplay">?</span></p>
+                    <p id="currentQuestionTimerDisplay" class="text-lg text-gray-600 dark:text-gray-400 mt-1">Thời gian câu này: <span id="currentQuestionTime">00:00</span></p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Đang làm câu: <span id="currentQuestionNumber" class="font-semibold">1</span> / <span id="totalQuestionsDisplay">?</span></p>
                      <div id="progressBarContainer">
                          <div id="progressBar" style="width: 0%"></div>
                      </div>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <button id="nextQuestionButton" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4">
+                    <button id="flagQuestionButton" title="Đánh dấu câu này (Phím tắt: F)" class="btn-secondary p-2 text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 01-1-1V6zm7 4a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
+                        </svg>
+                        Đánh dấu
+                    </button>
+                    <button id="nextQuestionButton" title="Phím tắt: Space / Enter" class="flex-1 btn-success font-bold py-2 px-4">
                         Hoàn thành câu / Bài tiếp theo
                     </button>
-                    <button id="endExamButton" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4">
+                    <button id="endExamButton" title="Phím tắt: Esc" class="flex-1 btn-danger font-bold py-2 px-4">
                         Kết thúc bài thi
                     </button>
                 </div>
-                <button id="pauseResumeButton" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 mt-3">
+                <button id="pauseResumeButton" title="Phím tắt: P" class="w-full btn-warning font-bold py-2 px-4 mt-3">
                     Tạm dừng
                 </button>
             </div>
 
             <div id="resultsArea" class="hidden mt-6">
-                <h2 class="text-xl font-semibold text-center text-blue-600 mb-4">Kết quả làm bài</h2>
-                <div class="text-center mb-4 p-3 bg-green-50 rounded-md border border-green-200">
-                    <p class="text-sm font-medium text-green-800">Môn: <span id="resultSubjectDisplay" class="font-semibold"></span> - Đề: <span id="resultExamNumberDisplay" class="font-semibold"></span></p>
-                    <p class="text-sm text-gray-600 mt-1">Ngày thi: <span id="resultDateDisplay" class="font-medium"></span></p>
+                <h2 class="text-xl font-semibold text-center text-blue-600 dark:text-blue-400 mb-4">Kết quả làm bài</h2>
+                <div class="text-center mb-4 p-3 success-box rounded-md">
+                    <p class="text-sm font-medium">Môn: <span id="resultSubjectDisplay" class="font-semibold"></span> - Đề: <span id="resultExamNumberDisplay" class="font-semibold"></span></p>
+                    <p class="text-sm mt-1">Ngày thi: <span id="resultDateDisplay" class="font-medium"></span></p>
                 </div>
                 <div class="text-center mb-4 space-y-1 text-sm">
                     <p>Tổng thời gian làm bài: <span id="totalTimeTaken" class="font-medium"></span></p>
-                    <p class="text-gray-600">(Thời gian cài đặt: <span id="totalTimeSetDisplay"></span>, Tổng số câu cài đặt: <span id="totalQuestionsSetDisplay"></span>)</p>
-                    <p class="text-gray-800 font-medium">Thời gian trung bình/câu (đã làm): <span id="averageTimePerQuestionDisplay"></span></p>
-                    <p class="text-blue-700 font-medium">Thời gian mục tiêu/câu (theo cài đặt): <span id="targetTimePerQuestionDisplay"></span></p>
+                    <p class="text-gray-600 dark:text-gray-400">(Thời gian cài đặt: <span id="totalTimeSetDisplay"></span>, Tổng số câu cài đặt: <span id="totalQuestionsSetDisplay"></span>)</p>
+                    <p class="font-medium">Thời gian trung bình/câu (đã làm): <span id="averageTimePerQuestionDisplay"></span></p>
+                    <p class="text-blue-700 dark:text-blue-400 font-medium">Thời gian mục tiêu/câu (theo cài đặt): <span id="targetTimePerQuestionDisplay"></span></p>
                 </div>
 
-                <h3 class="text-lg font-semibold text-gray-700 mb-2">Chi tiết thời gian từng câu</h3>
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Chi tiết thời gian từng câu</h3>
                 <div class="table-container">
                     <table class="stats-table results-stats-table w-full border-collapse">
                         <thead>
@@ -263,20 +406,18 @@
                                 <th>Nhãn</th>
                             </tr>
                         </thead>
-                        <tbody id="statsTableBody">
-                             </tbody>
+                        <tbody id="statsTableBody"></tbody>
                     </table>
                 </div>
 
-                <h3 class="text-lg font-semibold text-gray-700 mt-6 mb-2">Thống kê theo nhãn</h3>
-                <div id="statsByLabelArea" class="space-y-1 text-sm text-gray-700 p-3 bg-gray-50 rounded-md border border-gray-200">
-                     </div>
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mt-6 mb-2">Thống kê theo nhãn</h3>
+                <div id="statsByLabelArea" class="space-y-1 text-sm p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-600"></div>
 
                 <div class="flex flex-col sm:flex-row gap-3 mt-6">
-                    <button id="restartButton" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4">
+                    <button id="restartButton" class="flex-1 btn-primary font-bold py-2 px-4">
                         Làm bài thi khác
                     </button>
-                    <button id="viewHistoryFromResultsButton" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4">
+                    <button id="viewHistoryFromResultsButton" class="flex-1 btn-secondary font-bold py-2 px-4">
                         Xem Lịch sử Thi
                     </button>
                 </div>
@@ -284,7 +425,7 @@
         </div>
 
         <div id="historyArea" class="hidden mt-6">
-             <h2 class="text-xl font-semibold text-center text-blue-600 mb-4">Lịch sử Thi</h2>
+             <h2 class="text-xl font-semibold text-center text-blue-600 dark:text-blue-400 mb-4">Lịch sử Thi</h2>
              <div class="table-container">
                  <table id="historyTable" class="stats-table w-full border-collapse">
                      <thead>
@@ -294,30 +435,38 @@
                              <th>Đề số</th>
                              <th>Tổng thời gian</th>
                              <th>Chi tiết</th>
-                             <th>Hành động</th> </tr>
+                             <th>Hành động</th>
+                         </tr>
                      </thead>
-                     <tbody id="historyTableBody">
-                         </tbody>
+                     <tbody id="historyTableBody"></tbody>
                  </table>
              </div>
               <div class="mt-4 space-y-3">
-                 <button id="exportHistoryButton" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4">
+                 <button id="viewChartsButton" class="w-full btn-primary font-bold py-2 px-4">
+                     Xem Biểu đồ Thống kê
+                 </button>
+                 <button id="exportHistoryButton" class="w-full btn-purple font-bold py-2 px-4">
                      Xuất Lịch sử (JSON)
                  </button>
-                 <button id="clearHistoryButton" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4">
+                 <button id="clearHistoryButton" class="w-full btn-danger-outline font-bold py-2 px-4">
                     Xóa Toàn Bộ Lịch Sử (KHÔNG THỂ HOÀN TÁC)
                  </button>
-                 <button id="backToSettingsButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4">
+                 <button id="backToSettingsButton" class="w-full btn-secondary font-bold py-2 px-4">
                      Quay lại Cài đặt
                  </button>
               </div>
+               <div id="chartContainer" class="hidden mt-6">
+                   <h3 class="text-lg font-semibold text-center mb-4">Biểu đồ Thống kê</h3>
+                   <canvas id="historyChart"></canvas>
+                   <button id="closeChartButton" class="mt-4 w-full btn-secondary font-bold py-2 px-4">Đóng Biểu đồ</button>
+               </div>
         </div>
 
         <div id="historyDetailModal" class="modal">
              <div class="modal-content">
                  <span class="close-button" onclick="closeModal()">&times;</span>
-                 <h3 class="text-lg font-semibold text-blue-600 mb-3" id="modalTitle">Chi tiết Bài thi</h3>
-                 <div class="mb-3 text-sm space-y-1 border-b pb-3 border-gray-200">
+                 <h3 class="text-lg font-semibold text-blue-600 dark:text-blue-400 mb-3" id="modalTitle">Chi tiết Bài thi</h3>
+                 <div class="mb-3 text-sm space-y-1 border-b pb-3 border-gray-200 dark:border-gray-600">
                      <p><strong>Môn:</strong> <span id="modalSubject"></span></p>
                      <p><strong>Đề:</strong> <span id="modalExamNumber"></span></p>
                      <p><strong>Ngày thi:</strong> <span id="modalDate"></span></p>
@@ -325,9 +474,9 @@
                      <p><strong>Thời gian cài đặt:</strong> <span id="modalTotalTimeSet"></span></p>
                       <p><strong>Tổng số câu cài đặt:</strong> <span id="modalTotalQuestionsSet"></span></p>
                       <p><strong>Thời gian mục tiêu/câu:</strong> <span id="modalTargetTimePerQuestion"></span></p>
-                      <p class="text-gray-800 font-medium"><strong>Thời gian trung bình/câu (đã làm):</strong> <span id="modalAverageTimePerQuestion"></span></p>
+                      <p class="font-medium"><strong>Thời gian trung bình/câu (đã làm):</strong> <span id="modalAverageTimePerQuestion"></span></p>
                  </div>
-                 <h4 class="text-base font-semibold text-gray-700 mb-2 mt-3">Thời gian từng câu:</h4>
+                 <h4 class="text-base font-semibold text-gray-700 dark:text-gray-300 mb-2 mt-3">Thời gian từng câu:</h4>
                  <div class="table-container">
                      <table class="stats-table w-full border-collapse">
                          <thead>
@@ -335,38 +484,44 @@
                                  <th>Câu số</th>
                                  <th>Thời gian hoàn thành</th>
                                   <th>So với mục tiêu</th>
-                                 <th>Nhãn</th> </tr>
+                                 <th>Nhãn</th>
+                             </tr>
                          </thead>
-                         <tbody id="modalStatsTableBody">
-                              </tbody>
+                         <tbody id="modalStatsTableBody"></tbody>
                      </table>
                  </div>
-                 <h4 class="text-base font-semibold text-gray-700 mt-4 mb-2">Thống kê theo nhãn:</h4>
-                  <div id="modalStatsByLabelArea" class="space-y-1 text-sm text-gray-700 p-3 bg-gray-50 rounded-md border border-gray-200">
-                        </div>
+                 <h4 class="text-base font-semibold text-gray-700 dark:text-gray-300 mt-4 mb-2">Thống kê theo nhãn:</h4>
+                  <div id="modalStatsByLabelArea" class="space-y-1 text-sm p-3 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-600"></div>
              </div>
         </div>
 
-        <div id="errorMessage" class="hidden mt-4 text-center text-red-600 bg-red-100 p-3 rounded-md border border-red-200"></div>
+        <div id="errorMessage" class="hidden mt-4 text-center p-3 rounded-md error-box"></div>
     </div>
 
     <script>
-        // === Các phần tử DOM ===
+        // === DOM Elements ===
+        const bodyElement = document.body;
+        const mainContainer = document.querySelector('.main-container'); // For potential dark mode on container
         const mainContentDiv = document.getElementById('mainContent');
 
+        // Screens
         const settingsDiv = document.getElementById('settings');
         const examAreaDiv = document.getElementById('examArea');
         const resultsAreaDiv = document.getElementById('resultsArea');
         const historyAreaDiv = document.getElementById('historyArea');
+        const chartContainer = document.getElementById('chartContainer'); // NEW: Chart container
 
+        // Settings Inputs & Buttons
         const subjectInput = document.getElementById('subjectInput');
         const examNumberInput = document.getElementById('examNumberInput');
         const totalTimeInput = document.getElementById('totalTimeInput');
         const totalQuestionsInput = document.getElementById('totalQuestionsInput');
         const startButton = document.getElementById('startButton');
         const viewHistoryButton = document.getElementById('viewHistoryButton');
-        const viewHistoryFromResultsButton = document.getElementById('viewHistoryFromResultsButton');
+        const darkModeToggle = document.getElementById('darkModeToggle'); // NEW: Dark mode toggle
+        const soundToggle = document.getElementById('soundToggle'); // NEW: Sound toggle
 
+        // Exam Area Elements
         const currentSubjectDisplay = document.getElementById('currentSubjectDisplay');
         const currentExamNumberDisplay = document.getElementById('currentExamNumberDisplay');
         const timerDisplay = document.getElementById('timerDisplay');
@@ -376,8 +531,10 @@
         const endExamButton = document.getElementById('endExamButton');
         const pauseResumeButton = document.getElementById('pauseResumeButton');
         const progressBar = document.getElementById('progressBar');
-        const currentQuestionTimeSpan = document.getElementById('currentQuestionTime'); // NEW: Element for current question time
+        const currentQuestionTimeSpan = document.getElementById('currentQuestionTime');
+        const flagQuestionButton = document.getElementById('flagQuestionButton'); // NEW: Flag button
 
+        // Results Area Elements
         const resultSubjectDisplay = document.getElementById('resultSubjectDisplay');
         const resultExamNumberDisplay = document.getElementById('resultExamNumberDisplay');
         const resultDateDisplay = document.getElementById('resultDateDisplay');
@@ -389,12 +546,18 @@
         const statsTableBody = document.getElementById('statsTableBody');
         const statsByLabelArea = document.getElementById('statsByLabelArea');
         const restartButton = document.getElementById('restartButton');
+        const viewHistoryFromResultsButton = document.getElementById('viewHistoryFromResultsButton');
 
+        // History Area Elements
         const historyTableBody = document.getElementById('historyTableBody');
         const backToSettingsButton = document.getElementById('backToSettingsButton');
         const exportHistoryButton = document.getElementById('exportHistoryButton');
         const clearHistoryButton = document.getElementById('clearHistoryButton');
+        const viewChartsButton = document.getElementById('viewChartsButton'); // NEW: View charts button
+        const closeChartButton = document.getElementById('closeChartButton'); // NEW: Close charts button
+        const historyChartCanvas = document.getElementById('historyChart'); // NEW: Chart canvas
 
+        // Modal Elements
         const historyDetailModal = document.getElementById('historyDetailModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalSubject = document.getElementById('modalSubject');
@@ -408,34 +571,44 @@
         const modalStatsTableBody = document.getElementById('modalStatsTableBody');
         const modalStatsByLabelArea = document.getElementById('modalStatsByLabelArea');
 
+        // Error Message
         const errorMessageDiv = document.getElementById('errorMessage');
 
-        // === Biến trạng thái ===
+        // === State Variables ===
         let totalSecondsSet = 0;
         let totalQuestionsSet = 0;
         let secondsRemaining = 0;
-        let timerInterval = null;           // Interval for main timer
+        let timerInterval = null;
         let questionStartTime = 0;
         let examStartTime = 0;
         let currentQuestionIndex = 1;
         let isPaused = false;
         let pausedTime = 0;
         let totalPauseDuration = 0;
-        let currentQuestionTimerInterval = null; // NEW: Interval for current question timer
-        let currentQuestionSeconds = 0;      // NEW: Seconds elapsed for the current question
-
+        let currentQuestionTimerInterval = null;
+        let currentQuestionSeconds = 0;
+        let isCurrentQuestionFlagged = false; // NEW: Flag state for current question
         let currentExamData = null;
+        let appSettings = { // NEW: App settings object
+            darkMode: false,
+            soundEnabled: false,
+            lastSubject: '',
+            lastExamNumber: '',
+            lastTotalTime: 60,
+            lastTotalQuestions: 50
+        };
+        let audioContext = null; // NEW: Audio Context for sound
+        let historyChartInstance = null; // NEW: Chart instance
 
-        const HISTORY_STORAGE_KEY = 'examTimerHistoryV4';
+        // === Constants ===
+        const HISTORY_STORAGE_KEY = 'examTimerHistoryV5'; // Updated version
+        const SETTINGS_STORAGE_KEY = 'examTimerSettingsV1'; // NEW: Settings key
         const LABEL_OPTIONS = ['Chưa gán', 'Dễ', 'Trung bình', 'Khó', 'Lý thuyết', 'Bài tập', 'Khác'];
+        const WARNING_TIMES = [600, 300, 60]; // Seconds remaining for warnings (10m, 5m, 1m)
 
-        // === Hàm xử lý chung ===
+        // === Utility Functions ===
 
-        /**
-         * Định dạng tổng số giây thành chuỗi HH:MM:SS.
-         * @param {number} totalSeconds Tổng số giây.
-         * @returns {string} Chuỗi thời gian định dạng HH:MM:SS.
-         */
+        /** Formats total seconds to HH:MM:SS */
         function formatTime(totalSeconds) {
             if (isNaN(totalSeconds) || totalSeconds < 0) totalSeconds = 0;
             const hours = Math.floor(totalSeconds / 3600);
@@ -444,11 +617,7 @@
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        /**
-         * Định dạng tổng số giây thành chuỗi MM:SS.
-         * @param {number} totalSeconds Tổng số giây.
-         * @returns {string} Chuỗi thời gian định dạng MM:SS.
-         */
+        /** Formats total seconds to MM:SS */
         function formatTimeMMSS(totalSeconds) {
              if (isNaN(totalSeconds) || totalSeconds < 0) totalSeconds = 0;
              const minutes = Math.floor(totalSeconds / 60);
@@ -456,12 +625,7 @@
              return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-
-        /**
-         * Định dạng số giây thành chuỗi dạng "Xp Ys" hoặc "Ys".
-         * @param {number} seconds Số giây.
-         * @returns {string} Chuỗi thời gian định dạng rút gọn.
-         */
+        /** Formats seconds to "Xp Ys" or "Ys" */
         function formatTimeInSeconds(seconds) {
             if (isNaN(seconds) || seconds < 0) seconds = 0;
             const minutes = Math.floor(seconds / 60);
@@ -473,11 +637,7 @@
              }
         }
 
-        /**
-         * Định dạng đối tượng Date thành chuỗi ngày giờ địa phương.
-         * @param {Date} date Đối tượng Date.
-         * @returns {string} Chuỗi ngày giờ đã định dạng hoặc 'N/A'.
-         */
+        /** Formats Date object to local string */
         function formatDate(date) {
             if (!date || !(date instanceof Date) || isNaN(date.getTime())) return 'N/A';
             try {
@@ -488,40 +648,158 @@
             }
         }
 
-        /**
-         * Hiển thị thông báo lỗi và tự động ẩn sau một khoảng thời gian.
-         * @param {string} message Nội dung thông báo lỗi.
-         */
+        /** Shows an error message */
         function showError(message) {
             errorMessageDiv.textContent = message;
             errorMessageDiv.classList.remove('hidden');
-            if (errorMessageDiv.timeoutId) {
-                clearTimeout(errorMessageDiv.timeoutId);
-            }
+            if (errorMessageDiv.timeoutId) clearTimeout(errorMessageDiv.timeoutId);
             errorMessageDiv.timeoutId = setTimeout(() => {
                 errorMessageDiv.classList.add('hidden');
                 errorMessageDiv.timeoutId = null;
             }, 5000);
         }
 
-        /**
-         * Ẩn tất cả các khu vực màn hình chính.
-         */
+        /** Hides all main screen sections */
         function hideAllSections() {
             settingsDiv.classList.add('hidden');
             examAreaDiv.classList.add('hidden');
             resultsAreaDiv.classList.add('hidden');
             historyAreaDiv.classList.add('hidden');
+            chartContainer.classList.add('hidden'); // Hide chart container too
         }
 
+        // === Settings Management (NEW) ===
+
+        /** Loads app settings from localStorage */
+        function loadAppSettings() {
+            const storedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
+            if (storedSettings) {
+                try {
+                    appSettings = { ...appSettings, ...JSON.parse(storedSettings) };
+                } catch (e) {
+                    console.error("Lỗi đọc cài đặt:", e);
+                    localStorage.removeItem(SETTINGS_STORAGE_KEY); // Clear corrupted settings
+                }
+            }
+            applySettings(); // Apply loaded settings to UI
+        }
+
+        /** Saves current app settings to localStorage */
+        function saveAppSettings() {
+            try {
+                localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(appSettings));
+            } catch (e) {
+                console.error("Lỗi lưu cài đặt:", e);
+                showError("Không thể lưu cài đặt. Bộ nhớ có thể đã đầy.");
+            }
+        }
+
+        /** Applies loaded settings to the UI elements */
+        function applySettings() {
+            // Dark Mode
+            darkModeToggle.checked = appSettings.darkMode;
+            if (appSettings.darkMode) {
+                bodyElement.classList.add('dark');
+            } else {
+                bodyElement.classList.remove('dark');
+            }
+            // Sound
+            soundToggle.checked = appSettings.soundEnabled;
+            // Default Exam Settings
+            subjectInput.value = appSettings.lastSubject || '';
+            examNumberInput.value = appSettings.lastExamNumber || '';
+            totalTimeInput.value = appSettings.lastTotalTime || 60;
+            totalQuestionsInput.value = appSettings.lastTotalQuestions || 50;
+        }
+
+        /** Toggles dark mode */
+        function toggleDarkMode() {
+            appSettings.darkMode = darkModeToggle.checked;
+            bodyElement.classList.toggle('dark', appSettings.darkMode);
+            saveAppSettings();
+            // NEW: Update chart colors if chart exists and is visible
+             if (historyChartInstance && !chartContainer.classList.contains('hidden')) {
+                 displayHistoryCharts(); // Re-render chart with new theme colors
+             }
+        }
+
+        /** Toggles sound setting */
+        function toggleSound() {
+            appSettings.soundEnabled = soundToggle.checked;
+            saveAppSettings();
+            if (appSettings.soundEnabled) {
+                // Initialize AudioContext on user interaction
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log("AudioContext initialized.");
+                    } catch (e) {
+                        console.error("Web Audio API is not supported in this browser.", e);
+                        showError("Trình duyệt không hỗ trợ âm thanh.");
+                        appSettings.soundEnabled = false; // Disable sound if not supported
+                        soundToggle.checked = false;
+                        soundToggle.disabled = true;
+                        saveAppSettings();
+                    }
+                }
+                // Play a short sound to confirm activation
+                playSound(880, 0.1, 'sine'); // A short beep
+            }
+        }
+
+        // === Sound Playback (NEW) ===
+
         /**
-         * Hiển thị màn hình cài đặt và reset trạng thái ứng dụng.
+         * Plays a simple sound using Web Audio API.
+         * @param {number} frequency - Frequency in Hz (e.g., 440 for A4).
+         * @param {number} duration - Duration in seconds.
+         * @param {string} type - Oscillator type ('sine', 'square', 'sawtooth', 'triangle').
          */
+        function playSound(frequency = 440, duration = 0.2, type = 'sine') {
+            if (!appSettings.soundEnabled || !audioContext || audioContext.state === 'suspended') {
+                // Attempt to resume context if suspended (often due to browser policy)
+                if(audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log("AudioContext resumed successfully.");
+                        // Try playing again after resume
+                        if (appSettings.soundEnabled) _playSoundInternal(frequency, duration, type);
+                    }).catch(e => console.error("Error resuming AudioContext:", e));
+                }
+                return; // Don't play if disabled or context not ready/resumed
+            }
+            _playSoundInternal(frequency, duration, type);
+        }
+
+        function _playSoundInternal(frequency, duration, type) {
+             try {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = type;
+                oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime); // Value in hertz
+
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime); // Start with volume
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration); // Fade out
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+             } catch (e) {
+                  console.error("Error playing sound:", e);
+             }
+        }
+
+
+        // === UI Navigation ===
+
+        /** Shows the settings screen and resets state */
         function showSettings() {
             clearInterval(timerInterval);
-            clearInterval(currentQuestionTimerInterval); // NEW: Clear current question timer interval
+            clearInterval(currentQuestionTimerInterval);
             timerInterval = null;
-            currentQuestionTimerInterval = null; // NEW
+            currentQuestionTimerInterval = null;
             isPaused = false;
             pausedTime = 0;
             totalPauseDuration = 0;
@@ -530,25 +808,32 @@
             currentQuestionIndex = 1;
             currentExamData = null;
             secondsRemaining = 0;
-            currentQuestionSeconds = 0; // NEW: Reset current question seconds
+            currentQuestionSeconds = 0;
+            isCurrentQuestionFlagged = false; // Reset flag state
 
             hideAllSections();
             settingsDiv.classList.remove('hidden');
 
-            subjectInput.value = '';
-            examNumberInput.value = '';
-            totalTimeInput.value = 60;
-            totalQuestionsInput.value = 50;
+            // Load last used settings from appSettings
+            subjectInput.value = appSettings.lastSubject || '';
+            examNumberInput.value = appSettings.lastExamNumber || '';
+            totalTimeInput.value = appSettings.lastTotalTime || 60;
+            totalQuestionsInput.value = appSettings.lastTotalQuestions || 50;
+
             errorMessageDiv.classList.add('hidden');
             progressBar.style.width = '0%';
-            if(currentQuestionTimeSpan) currentQuestionTimeSpan.textContent = '00:00'; // NEW: Reset display
+            if(currentQuestionTimeSpan) currentQuestionTimeSpan.textContent = '00:00';
+            // Reset flag button appearance
+             if(flagQuestionButton) {
+                flagQuestionButton.classList.remove('flagged');
+                flagQuestionButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 01-1-1V6zm7 4a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" /></svg> Đánh dấu`;
+             }
+
         }
 
-        // === Logic chính của ứng dụng ===
+        // === Core Exam Logic ===
 
-        /**
-         * Cập nhật hiển thị đồng hồ đếm ngược tổng và thanh tiến trình.
-         */
+        /** Updates the main timer display and progress bar */
         function updateTimer() {
             if (isPaused || !examStartTime) return;
 
@@ -556,11 +841,10 @@
             const elapsedSeconds = Math.floor((now - examStartTime - totalPauseDuration) / 1000);
             secondsRemaining = totalSecondsSet - elapsedSeconds;
 
-            if (secondsRemaining < 0) {
-                secondsRemaining = 0;
-            }
+            if (secondsRemaining < 0) secondsRemaining = 0;
 
             timerDisplay.textContent = formatTime(secondsRemaining);
+            timerDisplay.classList.remove('timer-warning', 'timer-ended'); // Reset color classes
 
              if (totalSecondsSet > 0) {
                 const percentage = Math.max(0, Math.min(100, (elapsedSeconds / totalSecondsSet) * 100));
@@ -569,35 +853,41 @@
                 progressBar.style.width = '0%';
              }
 
+            // Check for warnings and end time
             if (secondsRemaining <= 0) {
                 timerDisplay.textContent = formatTime(0);
                 progressBar.style.width = '100%';
+                timerDisplay.classList.add('timer-ended');
+                playSound(220, 0.5, 'square'); // Low beep for end
                 showError("Hết giờ làm bài!");
                 endExam();
-                timerDisplay.classList.remove('text-red-500', 'text-orange-500');
-                timerDisplay.classList.add('text-gray-500');
-            } else if (secondsRemaining <= 10 * 60) {
-                timerDisplay.classList.remove('text-red-500', 'text-gray-500');
-                timerDisplay.classList.add('text-orange-500');
             } else {
-                timerDisplay.classList.remove('text-orange-500', 'text-gray-500');
-                timerDisplay.classList.add('text-red-500');
+                 // Check warning times in descending order
+                 for (const warningTime of WARNING_TIMES) {
+                     if (secondsRemaining <= warningTime) {
+                         timerDisplay.classList.add('timer-warning');
+                         // Play sound only once when entering a warning threshold
+                         if (!timerDisplay.dataset.warned || parseInt(timerDisplay.dataset.warned) > warningTime) {
+                             playSound(880, 0.15, 'triangle'); // Higher pitch warning
+                             timerDisplay.dataset.warned = warningTime.toString(); // Mark as warned for this level
+                         }
+                         break; // Apply only the highest applicable warning
+                     }
+                 }
+                 if (!timerDisplay.classList.contains('timer-warning')) {
+                      delete timerDisplay.dataset.warned; // Reset warned status if time increases (e.g., debug)
+                 }
             }
         }
 
-        /**
-         * NEW: Cập nhật đồng hồ bấm giờ cho câu hỏi hiện tại.
-         */
+        /** Updates the current question timer */
         function updateCurrentQuestionTimer() {
-            if (isPaused || !examStartTime) return; // Don't update if paused or exam hasn't started
+            if (isPaused || !examStartTime) return;
             currentQuestionSeconds++;
             currentQuestionTimeSpan.textContent = formatTimeMMSS(currentQuestionSeconds);
         }
 
-
-        /**
-         * Bắt đầu một bài thi mới.
-         */
+        /** Starts a new exam */
         function startExam() {
             const subject = subjectInput.value.trim();
             const examNumber = examNumberInput.value.trim();
@@ -606,9 +896,17 @@
 
             if (!subject) { showError("Vui lòng nhập Môn thi."); return; }
             if (!examNumber) { showError("Vui lòng nhập Đề số / Tên bài thi."); return; }
-            if (isNaN(totalMinutes) || totalMinutes <= 0) { showError("Vui lòng nhập tổng thời gian hợp lệ (lớn hơn 0 phút)."); return; }
-            if (isNaN(totalQs) || totalQs <= 0) { showError("Vui lòng nhập tổng số câu hỏi hợp lệ (lớn hơn 0 câu)."); return; }
+            if (isNaN(totalMinutes) || totalMinutes <= 0) { showError("Vui lòng nhập tổng thời gian hợp lệ."); return; }
+            if (isNaN(totalQs) || totalQs <= 0) { showError("Vui lòng nhập tổng số câu hỏi hợp lệ."); return; }
 
+            // Save settings for next time (NEW)
+            appSettings.lastSubject = subject;
+            appSettings.lastExamNumber = examNumber;
+            appSettings.lastTotalTime = totalMinutes;
+            appSettings.lastTotalQuestions = totalQs;
+            saveAppSettings();
+
+            // Initialize state
             totalSecondsSet = totalMinutes * 60;
             totalQuestionsSet = totalQs;
             secondsRemaining = totalSecondsSet;
@@ -616,98 +914,83 @@
             isPaused = false;
             pausedTime = 0;
             totalPauseDuration = 0;
-            currentQuestionSeconds = 0; // NEW: Reset current question seconds
+            currentQuestionSeconds = 0;
+            isCurrentQuestionFlagged = false; // Reset flag state for new exam
             errorMessageDiv.classList.add('hidden');
             progressBar.style.width = '0%';
+            timerDisplay.dataset.warned = '99999'; // Reset warning status
 
             currentExamData = {
-                id: Date.now(),
-                subject: subject,
-                examNumber: examNumber,
-                date: new Date(),
-                totalTimeSet: totalSecondsSet,
-                totalQuestionsSet: totalQuestionsSet,
-                totalTimeTaken: 0,
-                questionTimes: []
+                id: Date.now(), subject, examNumber, date: new Date(),
+                totalTimeSet, totalQuestionsSet, totalTimeTaken: 0, questionTimes: []
             };
 
+            // Update UI
             hideAllSections();
             examAreaDiv.classList.remove('hidden');
             currentSubjectDisplay.textContent = subject;
             currentExamNumberDisplay.textContent = examNumber;
             timerDisplay.textContent = formatTime(totalSecondsSet);
-            timerDisplay.classList.remove('text-orange-500', 'text-gray-500');
-            timerDisplay.classList.add('text-red-500');
+            timerDisplay.classList.remove('timer-warning', 'timer-ended');
             currentQuestionNumberSpan.textContent = currentQuestionIndex;
             totalQuestionsDisplay.textContent = totalQuestionsSet;
-            currentQuestionTimeSpan.textContent = '00:00'; // NEW: Reset display
+            currentQuestionTimeSpan.textContent = '00:00';
+            flagQuestionButton.classList.remove('flagged'); // Reset flag button appearance
+            flagQuestionButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 01-1-1V6zm7 4a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" /></svg> Đánh dấu`;
 
-             if (totalQuestionsSet <= 0) {
-                 nextQuestionButton.disabled = true;
-                 endExamButton.disabled = true;
-                 pauseResumeButton.disabled = true;
-             } else {
-                 nextQuestionButton.disabled = false;
-                 endExamButton.disabled = false;
-                 pauseResumeButton.disabled = false;
-                 pauseResumeButton.textContent = 'Tạm dừng';
-                  pauseResumeButton.classList.remove('bg-green-500', 'hover:bg-green-600');
-                  pauseResumeButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
-             }
 
-            if (totalQuestionsSet === 1) {
-                nextQuestionButton.textContent = "Hoàn thành câu cuối";
-            } else {
-                nextQuestionButton.textContent = "Hoàn thành câu / Bài tiếp theo";
-            }
+            // Enable/disable buttons
+            const buttonsEnabled = totalQuestionsSet > 0;
+            nextQuestionButton.disabled = !buttonsEnabled;
+            endExamButton.disabled = !buttonsEnabled;
+            pauseResumeButton.disabled = !buttonsEnabled;
+            flagQuestionButton.disabled = !buttonsEnabled; // Disable flag if no questions
+            pauseResumeButton.textContent = 'Tạm dừng';
+            pauseResumeButton.classList.remove('btn-success'); // Reset pause button style
+            pauseResumeButton.classList.add('btn-warning');
 
+            if (totalQuestionsSet === 1) nextQuestionButton.textContent = "Hoàn thành câu cuối";
+            else nextQuestionButton.textContent = "Hoàn thành câu / Bài tiếp theo";
+
+            // Start timers
             const now = Date.now();
             examStartTime = now;
             questionStartTime = now;
-
-            // Start main timer
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(updateTimer, 1000);
-            updateTimer();
-
-            // NEW: Start current question timer
             if (currentQuestionTimerInterval) clearInterval(currentQuestionTimerInterval);
             currentQuestionTimerInterval = setInterval(updateCurrentQuestionTimer, 1000);
-            updateCurrentQuestionTimer(); // Initial display update
+            updateTimer();
+            updateCurrentQuestionTimer();
         }
 
-        /**
-         * Xử lý khi chuyển sang câu hỏi tiếp theo hoặc hoàn thành câu hiện tại.
-         */
+        /** Handles moving to the next question */
         function nextQuestion() {
-            if (isPaused) {
-                showError("Vui lòng tiếp tục bài thi trước khi chuyển câu.");
-                return;
-            }
-             if (currentQuestionIndex > totalQuestionsSet) {
+            if (isPaused || !currentExamData) return;
+            if (currentQuestionIndex > totalQuestionsSet) {
                  showError(`Đã hoàn thành đủ ${totalQuestionsSet} câu.`);
                  nextQuestionButton.disabled = true;
                  return;
              }
 
             const now = Date.now();
-            // Use currentQuestionSeconds which has been tracked by its own timer
-            const timeSpent = currentQuestionSeconds; // Get time from the dedicated counter
+            const timeSpent = currentQuestionSeconds; // Time from dedicated timer
 
-            if (currentExamData) {
-                 currentExamData.questionTimes.push({
-                    time: timeSpent,
-                    label: 'Chưa gán',
-                    questionNumber: currentQuestionIndex
-                });
-            } else {
-                 console.error("currentExamData is null when trying to save question time.");
-                 return;
-            }
+            // Save current question data (including flag status)
+            currentExamData.questionTimes.push({
+                time: timeSpent,
+                label: 'Chưa gán',
+                questionNumber: currentQuestionIndex,
+                flagged: isCurrentQuestionFlagged // NEW: Save flag status
+            });
 
-            // NEW: Reset current question timer seconds and display
+            // Reset for next question
             currentQuestionSeconds = 0;
             currentQuestionTimeSpan.textContent = '00:00';
+            isCurrentQuestionFlagged = false; // Reset flag for the new question
+            flagQuestionButton.classList.remove('flagged'); // Reset flag button appearance
+            flagQuestionButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 01-1-1V6zm7 4a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" /></svg> Đánh dấu`;
+
 
             if (currentQuestionIndex === totalQuestionsSet) {
                 endExam();
@@ -716,176 +999,148 @@
 
             currentQuestionIndex++;
             currentQuestionNumberSpan.textContent = currentQuestionIndex;
-            questionStartTime = now; // Still needed for potential endExam calculation if ended mid-question
+            questionStartTime = now; // Update start time for potential mid-question end
 
              if (currentQuestionIndex === totalQuestionsSet) {
                  nextQuestionButton.textContent = "Hoàn thành câu cuối";
              } else {
                  nextQuestionButton.textContent = "Hoàn thành câu / Bài tiếp theo";
              }
-             // The currentQuestionTimerInterval continues running, no need to restart
         }
 
-        /**
-         * Hiển thị hộp thoại xác nhận trước khi kết thúc bài thi.
-         */
+        /** Confirms and ends the exam */
         function confirmAndEndExam() {
              if (examStartTime > 0 || isPaused) {
                  if (confirm("Bạn có chắc chắn muốn kết thúc bài thi?")) {
                      endExam();
                  }
-             } else {
-                  console.log("Không có bài thi nào đang diễn ra để kết thúc.");
              }
         }
 
-
-        /**
-         * Kết thúc bài thi hiện tại.
-         */
+        /** Ends the current exam */
         function endExam() {
-             if (!examStartTime && !isPaused) {
-                 console.log("Bài thi đã kết thúc hoặc chưa bắt đầu.");
-                 return;
-             }
+             if (!examStartTime && !isPaused) return;
 
-            // Stop both timers
+            // Stop timers
             clearInterval(timerInterval);
-            clearInterval(currentQuestionTimerInterval); // NEW: Stop current question timer
+            clearInterval(currentQuestionTimerInterval);
             timerInterval = null;
-            currentQuestionTimerInterval = null; // NEW
+            currentQuestionTimerInterval = null;
 
+            // Disable buttons
             nextQuestionButton.disabled = true;
             endExamButton.disabled = true;
             pauseResumeButton.disabled = true;
+            flagQuestionButton.disabled = true;
 
             const endTime = isPaused ? pausedTime : Date.now();
 
-            // Record time for the last question if End was pressed mid-question
-            // Use the dedicated currentQuestionSeconds counter for the last question's time
+            // Record time for the last question if ended mid-question
              if (examStartTime > 0 && currentExamData && currentExamData.questionTimes.length < currentQuestionIndex) {
-                const lastQuestionTimeSpent = currentQuestionSeconds; // Time spent on the *current* question when End was pressed
+                const lastQuestionTimeSpent = currentQuestionSeconds;
                  if (!currentExamData.questionTimes.some(q => q.questionNumber === currentQuestionIndex)) {
                      currentExamData.questionTimes.push({
                         time: lastQuestionTimeSpent,
                         label: 'Chưa gán',
-                        questionNumber: currentQuestionIndex
+                        questionNumber: currentQuestionIndex,
+                        flagged: isCurrentQuestionFlagged // Save flag status of the last question
                     });
                  }
             }
 
+            // Calculate total time
             const totalTimeSpentSeconds = examStartTime > 0 ? Math.max(0, Math.floor((endTime - examStartTime - totalPauseDuration) / 1000)) : 0;
+            if (currentExamData) currentExamData.totalTimeTaken = totalTimeSpentSeconds;
+            else { showError("Lỗi lưu dữ liệu cuối cùng."); showSettings(); return; }
 
-            if (currentExamData) {
-                currentExamData.totalTimeTaken = totalTimeSpentSeconds;
-            } else {
-                 console.error("currentExamData is null when trying to finalize exam data.");
-                 showError("Lỗi: Không thể lưu dữ liệu bài thi.");
-                 showSettings();
-                 return;
-            }
+            // Final progress bar update
+            progressBar.style.width = totalSecondsSet > 0 ? `${Math.max(0, Math.min(100, (totalTimeSpentSeconds / totalSecondsSet) * 100))}%` : '100%';
 
-            if (totalSecondsSet > 0) {
-                const finalPercentage = Math.max(0, Math.min(100, (currentExamData.totalTimeTaken / totalSecondsSet) * 100));
-                progressBar.style.width = `${finalPercentage}%`;
-            } else {
-                progressBar.style.width = '100%';
-            }
-
+            // Save, display results, navigate
             saveExamToHistory(currentExamData);
             displayResults(currentExamData);
-
             hideAllSections();
             resultsAreaDiv.classList.remove('hidden');
 
-            examStartTime = 0;
-            questionStartTime = 0;
-            isPaused = false;
-            pausedTime = 0;
-            totalPauseDuration = 0;
-            currentQuestionSeconds = 0; // NEW: Reset just in case
+            // Reset state variables (after saving/displaying)
+            examStartTime = 0; questionStartTime = 0; isPaused = false; pausedTime = 0;
+            totalPauseDuration = 0; currentQuestionSeconds = 0; isCurrentQuestionFlagged = false;
         }
 
-        /**
-         * Xử lý Tạm dừng / Tiếp tục bài thi.
-         */
+        /** Toggles pause/resume state */
         function togglePauseResume() {
-             if (!examStartTime) {
-                 showError("Bài thi chưa bắt đầu.");
-                 return;
-             }
-             if (timerInterval === null && currentQuestionTimerInterval === null && !isPaused) { // Check both timers stopped and not paused
-                 showError("Bài thi đã kết thúc.");
-                 return;
-             }
+             if (!examStartTime) { showError("Bài thi chưa bắt đầu."); return; }
+             if (timerInterval === null && currentQuestionTimerInterval === null && !isPaused) { showError("Bài thi đã kết thúc."); return; }
 
             const now = Date.now();
-            if (isPaused) {
-                // --- Tiếp tục ---
+            if (isPaused) { // Resume
                 isPaused = false;
-                const currentPauseDuration = now - pausedTime;
-                totalPauseDuration += currentPauseDuration;
+                totalPauseDuration += (now - pausedTime);
                 pausedTime = 0;
 
                 pauseResumeButton.textContent = 'Tạm dừng';
-                pauseResumeButton.classList.remove('bg-green-500', 'hover:bg-green-600');
-                pauseResumeButton.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                pauseResumeButton.classList.remove('btn-success');
+                pauseResumeButton.classList.add('btn-warning');
 
-                if (currentQuestionIndex <= totalQuestionsSet) {
-                     nextQuestionButton.disabled = false;
-                 }
-                 endExamButton.disabled = false;
+                if (currentQuestionIndex <= totalQuestionsSet) nextQuestionButton.disabled = false;
+                endExamButton.disabled = false;
+                flagQuestionButton.disabled = false; // Re-enable flag button
 
-                // Restart main timer
+                // Restart timers
                 updateTimer();
+                updateCurrentQuestionTimer();
                 if (timerInterval) clearInterval(timerInterval);
-                timerInterval = setInterval(updateTimer, 1000);
-
-                // NEW: Restart current question timer
-                updateCurrentQuestionTimer(); // Update display immediately
                 if (currentQuestionTimerInterval) clearInterval(currentQuestionTimerInterval);
+                timerInterval = setInterval(updateTimer, 1000);
                 currentQuestionTimerInterval = setInterval(updateCurrentQuestionTimer, 1000);
 
-            } else {
-                // --- Tạm dừng ---
+            } else { // Pause
                 isPaused = true;
                 pausedTime = now;
                 clearInterval(timerInterval);
-                clearInterval(currentQuestionTimerInterval); // NEW: Stop current question timer
+                clearInterval(currentQuestionTimerInterval);
                 timerInterval = null;
-                currentQuestionTimerInterval = null; // NEW
+                currentQuestionTimerInterval = null;
 
                 pauseResumeButton.textContent = 'Tiếp tục';
-                pauseResumeButton.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-                pauseResumeButton.classList.add('bg-green-500', 'hover:bg-green-600');
+                pauseResumeButton.classList.remove('btn-warning');
+                pauseResumeButton.classList.add('btn-success');
 
-                 nextQuestionButton.disabled = true;
-                 endExamButton.disabled = true;
+                nextQuestionButton.disabled = true;
+                endExamButton.disabled = true;
+                flagQuestionButton.disabled = true; // Disable flag button when paused
             }
         }
 
-        // === Hiển thị kết quả và Thống kê ===
-        // (displayResults and displayStatsByLabel remain unchanged)
-        /**
-         * Hiển thị kết quả chi tiết của một bài thi.
-         * @param {object} examData Dữ liệu bài thi cần hiển thị.
-         */
-        function displayResults(examData) {
-             if (!examData) {
-                 showError("Không có dữ liệu kết quả để hiển thị.");
-                 showSettings(); // Quay lại cài đặt nếu không có dữ liệu
-                 return;
-             }
+        /** NEW: Toggles the flag for the current question */
+        function toggleFlagQuestion() {
+            if (isPaused || !examStartTime || timerInterval === null) return; // Only allow flagging during active exam
 
-            // --- Hiển thị thông tin chung ---
+            isCurrentQuestionFlagged = !isCurrentQuestionFlagged;
+            flagQuestionButton.classList.toggle('flagged', isCurrentQuestionFlagged); // Toggle visual style
+            // Update button text/icon (optional)
+            if (isCurrentQuestionFlagged) {
+                 flagQuestionButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-3.5L5 18V4z" /></svg> Bỏ đánh dấu`;
+            } else {
+                 flagQuestionButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 01-1-1V6zm7 4a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" /></svg> Đánh dấu`;
+            }
+            // console.log(`Câu ${currentQuestionIndex} đánh dấu: ${isCurrentQuestionFlagged}`);
+        }
+
+
+        // === Results Display ===
+
+        /** Displays exam results */
+        function displayResults(examData) {
+             if (!examData) { showError("Không có dữ liệu kết quả."); showSettings(); return; }
+
             resultSubjectDisplay.textContent = examData.subject || 'N/A';
             resultExamNumberDisplay.textContent = examData.examNumber || 'N/A';
-            resultDateDisplay.textContent = formatDate(examData.date); // Date object đã có sẵn
+            resultDateDisplay.textContent = formatDate(examData.date);
             totalTimeTakenSpan.textContent = formatTime(examData.totalTimeTaken);
             totalTimeSetDisplay.textContent = formatTime(examData.totalTimeSet);
             totalQuestionsSetDisplay.textContent = examData.totalQuestionsSet;
 
-            // --- Tính toán và hiển thị thời gian trung bình/mục tiêu ---
             const totalCompletedQuestions = examData.questionTimes?.length || 0;
             const averageTimePerQuestion = totalCompletedQuestions > 0 ? Math.round(examData.totalTimeTaken / totalCompletedQuestions) : 0;
             const targetTimePerQuestion = examData.totalQuestionsSet > 0 ? Math.round(examData.totalTimeSet / examData.totalQuestionsSet) : 0;
@@ -893,24 +1148,20 @@
             averageTimePerQuestionDisplay.textContent = `${formatTimeInSeconds(averageTimePerQuestion)} (${averageTimePerQuestion} giây)`;
             targetTimePerQuestionDisplay.textContent = `${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion} giây)`;
 
-            // --- Hiển thị bảng chi tiết từng câu ---
-            statsTableBody.innerHTML = ''; // Xóa nội dung cũ
+            statsTableBody.innerHTML = '';
             if (totalCompletedQuestions === 0) {
-                statsTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-3">Không có dữ liệu thời gian cho câu nào.</td></tr>';
+                statsTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-3 italic">Không có dữ liệu thời gian câu hỏi.</td></tr>';
             } else {
                  examData.questionTimes.forEach((qTimeData) => {
                     const questionNumber = qTimeData.questionNumber || 'N/A';
-                    const timeTaken = qTimeData.time ?? 0; // Dùng ?? để xử lý null/undefined
+                    const timeTaken = qTimeData.time ?? 0;
                     const label = qTimeData.label || 'Chưa gán';
+                    const isFlagged = qTimeData.flagged || false; // NEW: Check flag status
 
-                    // Tính độ lệch so với mục tiêu
                     const deviation = timeTaken - targetTimePerQuestion;
-                    const deviationText = targetTimePerQuestion > 0
-                        ? (deviation >= 0 ? `+${formatTimeInSeconds(deviation)}` : `-${formatTimeInSeconds(Math.abs(deviation))}`)
-                        : 'N/A'; // Không tính nếu không có mục tiêu
+                    const deviationText = targetTimePerQuestion > 0 ? (deviation >= 0 ? `+${formatTimeInSeconds(deviation)}` : `-${formatTimeInSeconds(Math.abs(deviation))}`) : 'N/A';
                     const deviationTooltip = targetTimePerQuestion > 0 ? `Mục tiêu: ${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion}s)` : '';
 
-                     // Xác định class highlight
                      let rowClass = '';
                      if (targetTimePerQuestion > 0) {
                          const percentDeviation = (deviation / targetTimePerQuestion) * 100;
@@ -919,15 +1170,16 @@
                           else if (Math.abs(deviation) <= 5 && targetTimePerQuestion > 10) rowClass = 'average';
                      }
 
-                    // Tạo dòng cho bảng
                     const row = document.createElement('tr');
-                    if (rowClass) row.classList.add(rowClass); // Thêm class nếu có
-                    row.dataset.examId = examData.id; // Lưu ID bài thi
-                    row.dataset.questionNumber = questionNumber; // Lưu số câu
+                    if (rowClass) row.classList.add(rowClass);
+                    row.dataset.examId = examData.id;
+                    row.dataset.questionNumber = questionNumber;
 
-                    // Tạo nội dung HTML cho dòng
+                    // NEW: Add flag indicator if flagged
+                    const flagHtml = isFlagged ? '<span class="flag-indicator" title="Đã đánh dấu">★</span>' : '';
+
                     row.innerHTML = `
-                        <td>Câu ${questionNumber}</td>
+                        <td>Câu ${questionNumber}${flagHtml}</td>
                         <td>${formatTimeInSeconds(timeTaken)} (${timeTaken} giây)</td>
                         <td title="${deviationTooltip}">${deviationText}</td>
                         <td>
@@ -937,416 +1189,243 @@
                         </td>
                     `;
 
-                    // Gắn sự kiện change cho select ngay khi tạo dòng
                     const selectElement = row.querySelector('.label-select');
                     selectElement.addEventListener('change', (e) => {
                         const newLabel = e.target.value;
                         const examId = row.dataset.examId;
                         const qNumber = parseInt(row.dataset.questionNumber);
-
                         if (examId && !isNaN(qNumber)) {
                             updateLabelInHistory(examId, qNumber, newLabel);
-                            // Cập nhật lại phần thống kê theo nhãn trên màn hình kết quả
                             const updatedExamData = getExamFromHistory(examId);
-                            if (updatedExamData) {
-                                displayStatsByLabel(updatedExamData, statsByLabelArea);
-                            }
+                            if (updatedExamData) displayStatsByLabel(updatedExamData, statsByLabelArea);
                         }
                     });
-
-                    statsTableBody.appendChild(row); // Thêm dòng vào bảng
+                    statsTableBody.appendChild(row);
                  });
             }
-
-             // Hiển thị thống kê theo nhãn ban đầu
              displayStatsByLabel(examData, statsByLabelArea);
         }
 
-        /**
-         * Tính toán và hiển thị thống kê theo nhãn vào phần tử targetElement.
-         * @param {object} examData Dữ liệu bài thi.
-         * @param {HTMLElement} targetElement Phần tử DOM để hiển thị thống kê.
-         */
+        /** Displays statistics grouped by label */
         function displayStatsByLabel(examData, targetElement) {
-             targetElement.innerHTML = ''; // Xóa nội dung cũ
-
-             if (!examData || !examData.questionTimes || examData.questionTimes.length === 0) {
-                 targetElement.innerHTML = '<p class="text-center text-gray-500 italic text-sm py-2">Không có dữ liệu câu hỏi để thống kê.</p>';
+             targetElement.innerHTML = '';
+             if (!examData?.questionTimes?.length) {
+                 targetElement.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 italic text-sm py-2">Không có dữ liệu câu hỏi.</p>';
                  return;
              }
 
-             // Tính toán thống kê
-             const stats = {}; // { label: { totalTime: 0, count: 0 } }
-             let totalAssigned = 0; // Số câu đã được gán nhãn (khác 'Chưa gán')
-
+             const stats = {};
+             let totalAssigned = 0;
              examData.questionTimes.forEach(qData => {
                  const label = qData.label || 'Chưa gán';
-                 if (!stats[label]) {
-                     stats[label] = { totalTime: 0, count: 0 };
-                 }
-                 stats[label].totalTime += (qData.time ?? 0); // Xử lý time có thể là null/undefined
+                 if (!stats[label]) stats[label] = { totalTime: 0, count: 0 };
+                 stats[label].totalTime += (qData.time ?? 0);
                  stats[label].count++;
-                 if (label !== 'Chưa gán') {
-                     totalAssigned++;
-                 }
+                 if (label !== 'Chưa gán') totalAssigned++;
              });
 
-              // Nếu tất cả đều là 'Chưa gán'
-              if (totalAssigned === 0 && stats['Chưa gán'] && stats['Chưa gán'].count === examData.questionTimes.length) {
-                 targetElement.innerHTML = '<p class="text-center text-gray-500 italic text-sm py-2">Gán nhãn cho câu hỏi ở bảng trên để xem thống kê.</p>';
+              if (totalAssigned === 0 && stats['Chưa gán']?.count === examData.questionTimes.length) {
+                 targetElement.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 italic text-sm py-2">Gán nhãn ở bảng trên để xem thống kê.</p>';
                  return;
               }
 
-              // Chuẩn bị dữ liệu để hiển thị và tính trung bình
-              const statsToDisplay = [];
-              for (const label in stats) {
-                  if (stats[label].count > 0) {
-                      const average = Math.round(stats[label].totalTime / stats[label].count);
-                      statsToDisplay.push({
-                          label: label,
-                          average: average,
-                          count: stats[label].count
-                      });
-                  }
-              }
+              const statsToDisplay = Object.entries(stats)
+                  .filter(([, data]) => data.count > 0)
+                  .map(([label, data]) => ({
+                      label,
+                      average: Math.round(data.totalTime / data.count),
+                      count: data.count
+                  }));
 
-             // Sắp xếp các nhãn theo thứ tự mong muốn
              statsToDisplay.sort((a, b) => {
                  const order = ['Dễ', 'Trung bình', 'Khó', 'Lý thuyết', 'Bài tập', 'Khác', 'Chưa gán'];
                  const indexA = order.indexOf(a.label);
                  const indexB = order.indexOf(b.label);
-                 if (indexA === -1 && indexB === -1) return a.label.localeCompare(b.label); // Alphabetical for others
-                 if (indexA === -1) return 1; // Unordered labels go last
+                 if (indexA === -1 && indexB === -1) return a.label.localeCompare(b.label);
+                 if (indexA === -1) return 1;
                  if (indexB === -1) return -1;
-                 return indexA - indexB; // Sort by predefined order
+                 return indexA - indexB;
              });
 
-             // Hiển thị kết quả thống kê
              statsToDisplay.forEach(item => {
                  const p = document.createElement('p');
-                 p.innerHTML = `<span class="font-medium">${item.label}:</span> Trung bình ${formatTimeInSeconds(item.average)} (${item.average} giây) / ${item.count} câu`;
+                 p.innerHTML = `<span class="font-medium">${item.label}:</span> Trung bình ${formatTimeInSeconds(item.average)} (${item.average}s) / ${item.count} câu`;
                  targetElement.appendChild(p);
              });
         }
 
+        // === History Management ===
 
-        // === Quản lý Lịch sử ===
-        // (getHistory, saveHistoryToStorage, saveExamToHistory, getExamFromHistory, updateLabelInHistory,
-        // deleteExamFromHistory, clearAllHistory, exportHistory, displayHistory, handleHistoryTableClick,
-        // showHistoryDetail, closeModal remain unchanged)
-        /**
-         * Lấy toàn bộ lịch sử thi từ localStorage.
-         * @returns {Array<object>} Mảng các đối tượng bài thi.
-         */
+        /** Gets history from localStorage */
         function getHistory() {
             const historyJson = localStorage.getItem(HISTORY_STORAGE_KEY);
             try {
                 const history = historyJson ? JSON.parse(historyJson) : [];
-                // Chuyển đổi chuỗi ngày ISO thành đối tượng Date khi đọc
                 return history.map(item => {
-                    // Kiểm tra tính hợp lệ của item và date
-                    if (item && item.id && item.date && typeof item.date === 'string') {
+                    if (item?.id && item.date && typeof item.date === 'string') {
                          const dateObj = new Date(item.date);
-                         // Chỉ trả về nếu Date hợp lệ
                          if (!isNaN(dateObj.getTime())) {
-                             // Đảm bảo questionTimes là mảng
                              item.questionTimes = Array.isArray(item.questionTimes) ? item.questionTimes : [];
                              return { ...item, date: dateObj };
                          }
                     }
-                    return null; // Bỏ qua item không hợp lệ
-                 }).filter(item => item !== null); // Lọc bỏ các item null
-
-            } catch (e) {
-                console.error("Lỗi đọc lịch sử từ localStorage:", e);
-                 showError("Lỗi đọc dữ liệu lịch sử. Dữ liệu có thể đã bị hỏng.");
-                // Có thể cân nhắc xóa dữ liệu hỏng: localStorage.removeItem(HISTORY_STORAGE_KEY);
-                return []; // Trả về mảng rỗng nếu lỗi
-            }
+                    return null;
+                 }).filter(item => item !== null);
+            } catch (e) { console.error("Lỗi đọc lịch sử:", e); showError("Lỗi đọc dữ liệu lịch sử."); return []; }
         }
 
-         /**
-          * Lưu mảng lịch sử vào localStorage (đảm bảo Date được chuyển thành chuỗi ISO).
-          * @param {Array<object>} historyArray Mảng lịch sử cần lưu.
-          */
+         /** Saves history array to localStorage */
          function saveHistoryToStorage(historyArray) {
              try {
-                  // Chuyển đổi Date thành chuỗi ISO trước khi lưu
                   const historyToSave = historyArray.map(item => ({
                        ...item,
-                       date: item.date instanceof Date ? item.date.toISOString() : item.date // Giữ nguyên nếu đã là chuỗi
+                       date: item.date instanceof Date ? item.date.toISOString() : item.date
                    }));
                  localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(historyToSave));
-             } catch (e) {
-                 console.error("Lỗi lưu lịch sử vào localStorage:", e);
-                 // Thông báo lỗi nếu không lưu được (ví dụ: đầy bộ nhớ)
-                 showError("Không thể lưu lịch sử. Bộ nhớ trình duyệt có thể đã đầy.");
-             }
+             } catch (e) { console.error("Lỗi lưu lịch sử:", e); showError("Không thể lưu lịch sử."); }
          }
 
-        /**
-         * Lưu một bài thi vào lịch sử.
-         * @param {object} examData Dữ liệu bài thi cần lưu.
-         */
+        /** Saves a single exam to history */
         function saveExamToHistory(examData) {
-             // Kiểm tra dữ liệu đầu vào cơ bản
-             if (!examData || !examData.id || !(examData.date instanceof Date)) {
-                console.error("Dữ liệu bài thi không hợp lệ để lưu:", examData);
-                 return;
-            };
-
+             if (!examData?.id || !(examData.date instanceof Date)) { console.error("Dữ liệu bài thi không hợp lệ:", examData); return; };
             const history = getHistory();
-            // Kiểm tra xem ID đã tồn tại chưa để tránh trùng lặp
             const existingIndex = history.findIndex(item => item.id === examData.id);
-
-            if (existingIndex === -1) {
-                 // Thêm mới nếu chưa tồn tại
-                 history.push(examData);
-            } else {
-                 // Cập nhật nếu đã tồn tại (ghi đè) - tùy theo logic mong muốn
-                 console.warn(`Bài thi ID ${examData.id} đã tồn tại. Ghi đè dữ liệu.`);
-                 history[existingIndex] = examData;
-            }
-
-            saveHistoryToStorage(history); // Lưu lại toàn bộ lịch sử
+            if (existingIndex === -1) history.push(examData);
+            else { console.warn(`Ghi đè bài thi ID ${examData.id}.`); history[existingIndex] = examData; }
+            saveHistoryToStorage(history);
         }
 
-        /**
-         * Lấy một bài thi cụ thể từ lịch sử bằng ID.
-         * @param {number|string} examId ID của bài thi cần lấy.
-         * @returns {object|null} Đối tượng bài thi hoặc null nếu không tìm thấy.
-         */
+        /** Gets a specific exam by ID */
         function getExamFromHistory(examId) {
             const history = getHistory();
-            // Chuyển ID sang kiểu number để so sánh nhất quán
             const numericExamId = typeof examId === 'string' ? Number(examId) : examId;
-            if (isNaN(numericExamId)) return null; // ID không hợp lệ
-            return history.find(exam => exam.id === numericExamId) || null; // Trả về null nếu không tìm thấy
+            if (isNaN(numericExamId)) return null;
+            return history.find(exam => exam.id === numericExamId) || null;
         }
 
-        /**
-         * Cập nhật nhãn cho một câu hỏi cụ thể trong lịch sử.
-         * @param {number|string} examId ID bài thi.
-         * @param {number} questionNumber Số thứ tự câu hỏi.
-         * @param {string} newLabel Nhãn mới.
-         */
+        /** Updates a question's label in history */
         function updateLabelInHistory(examId, questionNumber, newLabel) {
             const history = getHistory();
             const numericExamId = typeof examId === 'string' ? Number(examId) : examId;
             if (isNaN(numericExamId)) return;
-
             const examIndex = history.findIndex(exam => exam.id === numericExamId);
-
-            if (examIndex === -1) {
-                console.error(`Không tìm thấy bài thi ID ${numericExamId} trong lịch sử.`);
-                return;
-            }
-
-            // Đảm bảo questionTimes là một mảng
-            if (!Array.isArray(history[examIndex].questionTimes)) {
-                 console.error(`questionTimes không phải là mảng cho bài thi ID ${numericExamId}.`);
-                 history[examIndex].questionTimes = []; // Khởi tạo nếu chưa có
-            }
-
-            // Tìm câu hỏi theo questionNumber
+            if (examIndex === -1) { console.error(`Không tìm thấy bài thi ID ${numericExamId}.`); return; }
+            if (!Array.isArray(history[examIndex].questionTimes)) history[examIndex].questionTimes = [];
             const questionIndex = history[examIndex].questionTimes.findIndex(q => q.questionNumber === questionNumber);
-
-            if (questionIndex === -1) {
-                console.error(`Không tìm thấy câu ${questionNumber} trong bài thi ${numericExamId}.`);
-                // Có thể tạo mới nếu muốn:
-                // history[examIndex].questionTimes.push({ questionNumber: questionNumber, label: newLabel, time: null });
-                return;
-            }
-
-            // Cập nhật nhãn
+            if (questionIndex === -1) { console.error(`Không tìm thấy câu ${questionNumber} bài ${numericExamId}.`); return; }
             history[examIndex].questionTimes[questionIndex].label = newLabel;
-
-            // Lưu lại lịch sử đã cập nhật
             saveHistoryToStorage(history);
-
-            // console.log(`Đã cập nhật nhãn câu ${questionNumber} bài ${numericExamId} thành ${newLabel}`);
         }
 
-        /**
-         * Xóa một bài thi cụ thể khỏi lịch sử.
-         * @param {number|string} examId ID bài thi cần xóa.
-         */
+        /** Deletes a specific exam from history */
         function deleteExamFromHistory(examId) {
             const numericExamId = typeof examId === 'string' ? Number(examId) : examId;
             if (isNaN(numericExamId)) return;
-
             let history = getHistory();
-            // Lọc ra các bài thi KHÔNG có ID trùng khớp
             history = history.filter(exam => exam.id !== numericExamId);
-            saveHistoryToStorage(history); // Lưu lại lịch sử sau khi xóa
-            console.log(`Đã xóa bài thi ID ${numericExamId} khỏi lịch sử.`);
+            saveHistoryToStorage(history);
+            console.log(`Đã xóa bài thi ID ${numericExamId}.`);
         }
 
-        /**
-         * Xóa toàn bộ lịch sử thi (có xác nhận).
-         */
+        /** Clears all history with confirmation */
         function clearAllHistory() {
              const history = getHistory();
-              if (history.length === 0) {
-                  showError("Lịch sử đã trống.");
-                  return;
-              }
-
-              // Hiển thị hộp thoại xác nhận rõ ràng
-              if (confirm("⚠️ CẢNH BÁO:\n\nBạn có chắc chắn muốn XÓA TOÀN BỘ lịch sử thi không?\nHành động này sẽ xóa vĩnh viễn tất cả dữ liệu đã lưu và KHÔNG THỂ HOÀN TÁC.")) {
-                 localStorage.removeItem(HISTORY_STORAGE_KEY); // Xóa khỏi localStorage
-                 console.log("Đã xóa toàn bộ lịch sử thi.");
-                 displayHistory(); // Cập nhật lại giao diện lịch sử (sẽ hiển thị trống)
-                 showError("Đã xóa toàn bộ lịch sử."); // Thông báo cho người dùng
+              if (history.length === 0) { showError("Lịch sử đã trống."); return; }
+              if (confirm("⚠️ CẢNH BÁO:\nXóa toàn bộ lịch sử thi?\nHành động này KHÔNG THỂ HOÀN TÁC.")) {
+                 localStorage.removeItem(HISTORY_STORAGE_KEY);
+                 console.log("Đã xóa toàn bộ lịch sử.");
+                 displayHistory();
+                 showError("Đã xóa toàn bộ lịch sử.");
              }
         }
 
-         /**
-          * Xuất toàn bộ lịch sử thi dưới dạng file JSON.
-          */
+         /** Exports history to a JSON file */
          function exportHistory() {
              const history = getHistory();
-             if (history.length === 0) {
-                 showError("Không có lịch sử nào để xuất.");
-                 return;
-             }
-
-             // Chuyển đổi Date thành chuỗi ISO để đảm bảo tính nhất quán trong JSON
-             const historyForExport = history.map(item => ({
-                  ...item,
-                  date: item.date instanceof Date ? item.date.toISOString() : item.date // Giữ nguyên nếu đã là chuỗi
-              }));
-
-             // Tạo chuỗi JSON với định dạng đẹp (indent 2 spaces)
+             if (history.length === 0) { showError("Không có lịch sử để xuất."); return; }
+             const historyForExport = history.map(item => ({ ...item, date: item.date.toISOString() }));
              const historyJson = JSON.stringify(historyForExport, null, 2);
-             // Tạo Blob (Binary Large Object) từ chuỗi JSON
              const blob = new Blob([historyJson], { type: 'application/json;charset=utf-8' });
-
-             // Tạo URL tạm thời cho Blob
              const url = URL.createObjectURL(blob);
-             // Tạo một thẻ <a> ẩn để kích hoạt tải xuống
              const a = document.createElement('a');
-             a.style.display = 'none'; // Ẩn thẻ a
+             a.style.display = 'none';
              a.href = url;
-             // Tạo tên file với ngày tháng hiện tại
-              const dateStr = new Date().toISOString().slice(0, 10); // Format:𒑊-MM-DD
-              a.download = `lich_su_thi_thu_${dateStr}.json`; // Tên file tải về
-
-             // Thêm thẻ <a> vào body, click để tải, rồi xóa đi
+              const dateStr = new Date().toISOString().slice(0, 10);
+              a.download = `lich_su_thi_thu_${dateStr}.json`;
              document.body.appendChild(a);
              a.click();
              document.body.removeChild(a);
-
-             // Giải phóng URL tạm thời đã tạo
              URL.revokeObjectURL(url);
              showError("Đã xuất lịch sử thành công.");
          }
 
-        /**
-         * Hiển thị màn hình danh sách lịch sử thi.
-         */
+        /** Displays the history screen */
         function displayHistory() {
-            // Dừng các hoạt động của bài thi nếu đang chạy
-            clearInterval(timerInterval);
-            clearInterval(currentQuestionTimerInterval); // Stop current question timer too
-            timerInterval = null;
-            currentQuestionTimerInterval = null;
-            isPaused = false;
-            pausedTime = 0;
-            totalPauseDuration = 0;
+            clearInterval(timerInterval); clearInterval(currentQuestionTimerInterval);
+            timerInterval = null; currentQuestionTimerInterval = null;
+            isPaused = false; pausedTime = 0; totalPauseDuration = 0;
 
-            hideAllSections(); // Ẩn các màn hình khác
-            historyAreaDiv.classList.remove('hidden'); // Hiện màn hình lịch sử
+            hideAllSections();
+            historyAreaDiv.classList.remove('hidden');
+            chartContainer.classList.add('hidden'); // Ensure chart is hidden initially
 
-            const history = getHistory(); // Lấy dữ liệu lịch sử mới nhất
-            historyTableBody.innerHTML = ''; // Xóa nội dung bảng cũ
+            const history = getHistory();
+            historyTableBody.innerHTML = '';
 
-            // Hiển thị thông báo nếu lịch sử trống
             if (history.length === 0) {
-                historyTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-gray-500 py-4 italic">Chưa có lịch sử thi nào.</td></tr>`; // Colspan=6 vì có 6 cột
+                historyTableBody.innerHTML = `<tr><td colspan="6" class="text-center text-gray-500 dark:text-gray-400 py-4 italic">Chưa có lịch sử thi nào.</td></tr>`;
+                viewChartsButton.disabled = true; // Disable chart button if no history
                 return;
             }
+            viewChartsButton.disabled = false; // Enable chart button
 
-            // Sắp xếp lịch sử: mới nhất lên đầu
             history.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-            // Tạo các dòng cho bảng lịch sử
             history.forEach(exam => {
-                // Lấy thông tin, xử lý giá trị null/undefined
-                const examSubject = exam.subject || 'Không rõ môn';
-                const examNumber = exam.examNumber || 'Không rõ đề';
-                const examDate = formatDate(exam.date); // Đã xử lý N/A trong formatDate
+                const examSubject = exam.subject || 'N/A';
+                const examNumber = exam.examNumber || 'N/A';
+                const examDate = formatDate(exam.date);
                 const timeTaken = (exam.totalTimeTaken !== undefined && exam.totalTimeTaken !== null) ? formatTime(exam.totalTimeTaken) : 'N/A';
 
-                // Tạo thẻ <tr>
                 const row = document.createElement('tr');
-                row.classList.add('hover:bg-gray-50'); // Hiệu ứng hover nhẹ
-                // Thêm nội dung HTML cho các ô <td>
+                row.classList.add('hover:bg-gray-50', 'dark:hover:bg-gray-700');
                 row.innerHTML = `
                     <td class="whitespace-nowrap">${examDate}</td>
                     <td>${examSubject}</td>
                     <td>${examNumber}</td>
                     <td class="whitespace-nowrap">${timeTaken}</td>
-                    <td>
-                        <button class="text-blue-600 hover:text-blue-800 text-sm font-medium view-detail-btn" data-id="${exam.id}">Xem</button>
-                    </td>
-                    <td>
-                        <button class="text-red-600 hover:text-red-800 text-sm font-medium delete-history-btn" data-id="${exam.id}">Xóa</button>
-                    </td>
+                    <td><button class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium view-detail-btn" data-id="${exam.id}">Xem</button></td>
+                    <td><button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium delete-history-btn" data-id="${exam.id}">Xóa</button></td>
                 `;
-                historyTableBody.appendChild(row); // Thêm dòng vào tbody
+                historyTableBody.appendChild(row);
             });
         }
 
-        /**
-         * Xử lý các sự kiện click trên bảng lịch sử (Xem chi tiết, Xóa).
-         * Sử dụng event delegation.
-         * @param {Event} e Đối tượng sự kiện click.
-         */
+        /** Handles clicks within the history table */
         function handleHistoryTableClick(e) {
-            const target = e.target; // Phần tử được click
-
-            // Xử lý nút "Xem"
-            if (target && target.classList.contains('view-detail-btn')) {
+            const target = e.target;
+            if (target?.classList.contains('view-detail-btn')) {
                 const examId = target.getAttribute('data-id');
-                if (examId) {
-                    showHistoryDetail(examId);
-                }
-            }
-            // Xử lý nút "Xóa"
-            else if (target && target.classList.contains('delete-history-btn')) {
+                if (examId) showHistoryDetail(examId);
+            } else if (target?.classList.contains('delete-history-btn')) {
                const examId = target.getAttribute('data-id');
                if (examId) {
-                   // Lấy thông tin để hiển thị trong xác nhận
                    const examData = getExamFromHistory(examId);
-                   const subject = examData?.subject || 'N/A';
-                   const number = examData?.examNumber || 'N/A';
-                   const date = formatDate(examData?.date);
-                   const confirmMsg = `Bạn có chắc chắn muốn xóa bài thi:\n\n"${subject} - ${number}"\n(Làm ngày: ${date})\n\nHành động này không thể hoàn tác.`;
-
+                   const confirmMsg = `Xóa bài thi "${examData?.subject || 'N/A'} - ${examData?.examNumber || 'N/A'}" (${formatDate(examData?.date)})?\n\nKHÔNG THỂ HOÀN TÁC.`;
                    if (confirm(confirmMsg)) {
-                       deleteExamFromHistory(examId); // Xóa khỏi localStorage
-                       displayHistory(); // Cập nhật lại bảng lịch sử
-                       showError("Đã xóa bài thi khỏi lịch sử.");
+                       deleteExamFromHistory(examId);
+                       displayHistory();
+                       showError("Đã xóa bài thi.");
                    }
                }
             }
         }
 
-
-        /**
-         * Hiển thị modal chi tiết của một bài thi từ lịch sử.
-         * @param {number|string} examId ID của bài thi cần hiển thị.
-         */
+        /** Shows the history detail modal */
         function showHistoryDetail(examId) {
-            const examData = getExamFromHistory(examId); // Lấy dữ liệu từ lịch sử
+            const examData = getExamFromHistory(examId);
+            if (!examData) { showError("Không tìm thấy dữ liệu chi tiết."); return; }
 
-            if (!examData) {
-                showError("Không tìm thấy dữ liệu chi tiết cho bài thi này.");
-                return;
-            }
-
-            // --- Điền thông tin chung vào Modal ---
             modalTitle.textContent = `Chi tiết: ${examData.subject || 'N/A'} - ${examData.examNumber || 'N/A'}`;
             modalSubject.textContent = examData.subject || 'N/A';
             modalExamNumber.textContent = examData.examNumber || 'N/A';
@@ -1355,42 +1434,36 @@
             modalTotalTimeSet.textContent = formatTime(examData.totalTimeSet);
             modalTotalQuestionsSet.textContent = examData.totalQuestionsSet || 'N/A';
 
-            // Tính toán thời gian mục tiêu và trung bình
             const targetTimePerQuestion = (examData.totalQuestionsSet > 0 && examData.totalTimeSet >= 0) ? Math.round(examData.totalTimeSet / examData.totalQuestionsSet) : 0;
-            modalTargetTimePerQuestion.textContent = `${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion} giây)`;
+            modalTargetTimePerQuestion.textContent = `${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion}s)`;
 
             const totalCompletedQuestions = examData.questionTimes?.length || 0;
             const averageTimePerQuestion = totalCompletedQuestions > 0 ? Math.round(examData.totalTimeTaken / totalCompletedQuestions) : 0;
-            modalAverageTimePerQuestion.textContent = `${formatTimeInSeconds(averageTimePerQuestion)} (${averageTimePerQuestion} giây)`;
+            modalAverageTimePerQuestion.textContent = `${formatTimeInSeconds(averageTimePerQuestion)} (${averageTimePerQuestion}s)`;
 
-            // --- Điền bảng chi tiết từng câu vào Modal ---
-            modalStatsTableBody.innerHTML = ''; // Xóa nội dung cũ
+            modalStatsTableBody.innerHTML = '';
             if (totalCompletedQuestions === 0) {
-                modalStatsTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-3 italic">Không có dữ liệu thời gian câu hỏi.</td></tr>';
+                modalStatsTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-3 italic">Không có dữ liệu câu hỏi.</td></tr>';
             } else {
-                 // Sắp xếp các câu theo số thứ tự trước khi hiển thị (đề phòng dữ liệu bị lộn xộn)
                  const sortedQuestions = [...examData.questionTimes].sort((a, b) => (a.questionNumber || 0) - (b.questionNumber || 0));
-
                  sortedQuestions.forEach((qTimeData) => {
                     const questionNumber = qTimeData.questionNumber || 'N/A';
                     const timeTaken = qTimeData.time ?? 0;
                     const label = qTimeData.label || 'Chưa gán';
+                    const isFlagged = qTimeData.flagged || false; // Check flag
 
-                    // Tính độ lệch
                     const deviation = timeTaken - targetTimePerQuestion;
-                    const deviationText = targetTimePerQuestion > 0
-                        ? (deviation >= 0 ? `+${formatTimeInSeconds(deviation)}` : `-${formatTimeInSeconds(Math.abs(deviation))}`)
-                        : 'N/A';
+                    const deviationText = targetTimePerQuestion > 0 ? (deviation >= 0 ? `+${formatTimeInSeconds(deviation)}` : `-${formatTimeInSeconds(Math.abs(deviation))}`) : 'N/A';
                     const deviationTooltip = targetTimePerQuestion > 0 ? `Mục tiêu: ${formatTimeInSeconds(targetTimePerQuestion)} (${targetTimePerQuestion}s)` : '';
 
-                    // Tạo dòng cho bảng trong modal
                     const row = document.createElement('tr');
-                     row.dataset.examId = examData.id; // Lưu ID bài thi
-                     row.dataset.questionNumber = questionNumber; // Lưu số câu
+                     row.dataset.examId = examData.id;
+                     row.dataset.questionNumber = questionNumber;
 
-                     // Tạo HTML cho dòng, bao gồm select để chỉnh sửa nhãn
+                    const flagHtml = isFlagged ? '<span class="flag-indicator" title="Đã đánh dấu">★</span>' : '';
+
                      row.innerHTML = `
-                         <td>Câu ${questionNumber}</td>
+                         <td>Câu ${questionNumber}${flagHtml}</td>
                          <td>${formatTimeInSeconds(timeTaken)} (${timeTaken} giây)</td>
                          <td title="${deviationTooltip}">${deviationText}</td>
                          <td>
@@ -1399,77 +1472,230 @@
                              </select>
                          </td>
                      `;
-                     modalStatsTableBody.appendChild(row); // Thêm dòng vào bảng modal
+                     modalStatsTableBody.appendChild(row);
                  });
             }
-
-             // Hiển thị thống kê theo nhãn trong modal (dùng dữ liệu đã lấy)
              displayStatsByLabel(examData, modalStatsByLabelArea);
-
-            // Hiển thị modal
             historyDetailModal.style.display = "block";
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling when modal is open
+            document.body.style.overflow = 'hidden';
         }
 
-        /**
-         * Đóng modal chi tiết lịch sử.
-         */
+        /** Closes the history detail modal */
         function closeModal() {
             historyDetailModal.style.display = "none";
-            document.body.style.overflow = ''; // Restore background scrolling
-             // Optional: Clear modal content to prevent flicker if reopened quickly
-             // modalStatsTableBody.innerHTML = '';
-             // modalStatsByLabelArea.innerHTML = '';
+            document.body.style.overflow = '';
         }
 
-        // Đóng modal nếu click vào vùng nền mờ bên ngoài
-        window.onclick = function(event) {
-            if (event.target == historyDetailModal) {
-                closeModal();
+        // === Charting Functions (NEW) ===
+
+        /** Displays history charts */
+        function displayHistoryCharts() {
+             const history = getHistory();
+             if (history.length === 0) {
+                 showError("Không có dữ liệu lịch sử để vẽ biểu đồ.");
+                 return;
+             }
+
+             chartContainer.classList.remove('hidden'); // Show the chart section
+
+             // --- Example Chart: Average Time per Subject ---
+             const subjectStats = {}; // { subject: { totalTime: 0, totalQuestions: 0, count: 0 } }
+
+             history.forEach(exam => {
+                 const subject = exam.subject || 'Không xác định';
+                 if (!subjectStats[subject]) {
+                     subjectStats[subject] = { totalTime: 0, totalQuestions: 0, count: 0 };
+                 }
+                 // Calculate average time per question for *this specific exam*
+                 const completedQuestions = exam.questionTimes?.length || 0;
+                 if (completedQuestions > 0) {
+                     const avgTimeThisExam = exam.totalTimeTaken / completedQuestions;
+                     subjectStats[subject].totalTime += avgTimeThisExam; // Sum of averages (might be better ways to aggregate)
+                     subjectStats[subject].count++;
+                 }
+                 // Or track total time / total questions across all exams for a subject
+                 // subjectStats[subject].totalTime += exam.totalTimeTaken;
+                 // subjectStats[subject].totalQuestions += (exam.questionTimes?.length || 0);
+                 // subjectStats[subject].count++; // Count exams
+             });
+
+             const chartLabels = Object.keys(subjectStats);
+             const chartData = chartLabels.map(subject => {
+                 const stats = subjectStats[subject];
+                 // Calculate overall average for the subject based on summed averages
+                 return stats.count > 0 ? Math.round(stats.totalTime / stats.count) : 0;
+                 // Or based on total time / total questions
+                 // return stats.totalQuestions > 0 ? Math.round(stats.totalTime / stats.totalQuestions) : 0;
+             });
+
+             // Get theme-appropriate colors
+             const isDark = bodyElement.classList.contains('dark');
+             const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+             const labelColor = isDark ? '#e5e7eb' : '#4b5563'; // gray-200 / gray-600
+             const barBgColor = isDark ? 'rgba(96, 165, 250, 0.7)' : 'rgba(59, 130, 246, 0.7)'; // blue-400 / blue-500 with alpha
+             const barBorderColor = isDark ? '#60a5fa' : '#3b82f6'; // blue-400 / blue-500
+
+             // Destroy previous chart instance if it exists
+             if (historyChartInstance) {
+                 historyChartInstance.destroy();
+             }
+
+             // Create new chart
+             const ctx = historyChartCanvas.getContext('2d');
+             historyChartInstance = new Chart(ctx, {
+                 type: 'bar', // Or 'line', 'pie', etc.
+                 data: {
+                     labels: chartLabels,
+                     datasets: [{
+                         label: 'Thời gian trung bình/câu (giây)',
+                         data: chartData,
+                         backgroundColor: barBgColor,
+                         borderColor: barBorderColor,
+                         borderWidth: 1
+                     }]
+                 },
+                 options: {
+                     responsive: true,
+                     maintainAspectRatio: false, // Allow chart to fill container height
+                     scales: {
+                         y: {
+                             beginAtZero: true,
+                             title: { display: true, text: 'Thời gian (giây)', color: labelColor },
+                             ticks: { color: labelColor },
+                             grid: { color: gridColor }
+                         },
+                         x: {
+                             title: { display: true, text: 'Môn thi', color: labelColor },
+                             ticks: { color: labelColor },
+                             grid: { color: gridColor }
+                         }
+                     },
+                     plugins: {
+                         legend: { display: false }, // Hide legend for single dataset
+                         tooltip: {
+                             callbacks: {
+                                 label: function(context) {
+                                     let label = context.dataset.label || '';
+                                     if (label) label += ': ';
+                                     if (context.parsed.y !== null) {
+                                         label += `${context.parsed.y} giây`;
+                                     }
+                                     return label;
+                                 }
+                             }
+                         }
+                     }
+                 }
+             });
+        }
+
+         /** Hides the chart container */
+         function hideCharts() {
+             chartContainer.classList.add('hidden');
+             if (historyChartInstance) {
+                 historyChartInstance.destroy(); // Destroy chart when hiding
+                 historyChartInstance = null;
+             }
+         }
+
+
+        // === Keyboard Shortcuts (NEW) ===
+
+        /** Handles key presses for shortcuts */
+        function handleKeyPress(event) {
+            // Ignore if typing in inputs/selects or if modal is open
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'SELECT' || activeElement.tagName === 'TEXTAREA');
+            const isModalOpen = historyDetailModal.style.display === 'block';
+
+            if (isInputFocused || isModalOpen) return;
+
+            // Only apply shortcuts when exam is active and not paused
+            if (examStartTime > 0 && !isPaused) {
+                switch (event.key) {
+                    case ' ': // Spacebar
+                    case 'Enter':
+                        event.preventDefault(); // Prevent default space scroll / enter submit
+                        nextQuestionButton.click(); // Simulate click
+                        break;
+                    case 'p':
+                    case 'P':
+                        event.preventDefault();
+                        pauseResumeButton.click();
+                        break;
+                    case 'Escape': // Esc key
+                        event.preventDefault();
+                        // Directly call confirm function to ensure confirmation dialog
+                        confirmAndEndExam();
+                        break;
+                    case 'f': // NEW: Flag shortcut
+                    case 'F':
+                         event.preventDefault();
+                         flagQuestionButton.click();
+                         break;
+                }
+            } else if (examStartTime > 0 && isPaused && (event.key === 'p' || event.key === 'P')) {
+                 // Allow resuming with 'P' even when paused
+                 event.preventDefault();
+                 pauseResumeButton.click();
             }
         }
 
-        // === Gắn các Event Listeners ===
 
+        // === Event Listeners ===
+
+        // Settings Screen
         startButton.addEventListener('click', startExam);
         viewHistoryButton.addEventListener('click', displayHistory);
+        darkModeToggle.addEventListener('change', toggleDarkMode); // NEW
+        soundToggle.addEventListener('change', toggleSound); // NEW
+
+        // Exam Screen
         nextQuestionButton.addEventListener('click', nextQuestion);
         endExamButton.addEventListener('click', confirmAndEndExam);
         pauseResumeButton.addEventListener('click', togglePauseResume);
+        flagQuestionButton.addEventListener('click', toggleFlagQuestion); // NEW
+
+        // Results Screen
         restartButton.addEventListener('click', showSettings);
         viewHistoryFromResultsButton.addEventListener('click', displayHistory);
+
+        // History Screen
         backToSettingsButton.addEventListener('click', showSettings);
         exportHistoryButton.addEventListener('click', exportHistory);
         clearHistoryButton.addEventListener('click', clearAllHistory);
+        viewChartsButton.addEventListener('click', displayHistoryCharts); // NEW
+        closeChartButton.addEventListener('click', hideCharts); // NEW
+        historyTableBody.addEventListener('click', handleHistoryTableClick); // Delegation
 
-         historyTableBody.removeEventListener('click', handleHistoryTableClick);
-        historyTableBody.addEventListener('click', handleHistoryTableClick);
-
-         modalStatsTableBody.addEventListener('change', (e) => {
-             if (e.target && e.target.classList.contains('label-select-modal')) {
-                 const selectElement = e.target;
-                 const row = selectElement.closest('tr');
+        // Modal
+        modalStatsTableBody.addEventListener('change', (e) => { // Delegation for modal selects
+             if (e.target?.classList.contains('label-select-modal')) {
+                 const select = e.target;
+                 const row = select.closest('tr');
                  if (!row) return;
-
-                 const newLabel = selectElement.value;
+                 const newLabel = select.value;
                  const examId = row.dataset.examId;
                  const qNumber = parseInt(row.dataset.questionNumber);
-
                  if (examId && !isNaN(qNumber)) {
                      updateLabelInHistory(examId, qNumber, newLabel);
                      const updatedExamData = getExamFromHistory(examId);
-                     if (updatedExamData) {
-                         displayStatsByLabel(updatedExamData, modalStatsByLabelArea);
-                     }
-                 } else {
-                      console.error("Lỗi: Không lấy được examId hoặc questionNumber từ data attributes trong modal.");
+                     if (updatedExamData) displayStatsByLabel(updatedExamData, modalStatsByLabelArea);
                  }
              }
          });
+        // Close modal handled by inline onclick and window click listener below
 
-        // === Khởi tạo ứng dụng ===
+        // Global Listeners
+        window.onclick = function(event) { // Close modal on overlay click
+            if (event.target == historyDetailModal) closeModal();
+        }
+        document.addEventListener('keydown', handleKeyPress); // NEW: Keyboard shortcuts
+
+        // === Initialization ===
         document.addEventListener('DOMContentLoaded', () => {
-            showSettings();
+            loadAppSettings(); // Load settings first
+            showSettings();    // Then show the initial screen
         });
 
     </script>
